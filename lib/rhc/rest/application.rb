@@ -1,148 +1,125 @@
 require 'uri'
-require 'rhc/rest/base'
 
 module RHC
   module Rest
-    class Application < Base
+    class Application
       include Rest
-      attr_reader :domain_id, :name, :creation_time, :uuid, :aliases,
-                  :git_url, :app_url, :gear_profile, :framework,
-                  :scalable, :health_check_path, :embedded, :gear_count,
-                  :ssh_url, :scale_min, :scale_max
+      attr_reader :domain_id, :name, :creation_time, :uuid, :aliases, :git_url, :app_url, :gear_profile, :framework,
+      :scalable, :health_check_path, :embedded, :gear_count, :ssh_url, :scale_min, :scale_max
+      def initialize(args)
+        #logger.debug args
+        @domain_id = args[:domain_id] || args["domain_id"]
+        @name = args[:name] || args["name"]
+        @creation_time = args[:creation_time] || args["creation_time"]
+        @uuid = args[:uuid] || args["uuid"]
+        @aliases = args[:aliases] || args["aliases"]
+        @git_url = args[:git_url] || args["git_url"]
+        @app_url = args[:app_url] || args["app_url"]
+        @gear_profile = args[:gear_profile] || args["gear_profile"]
+        @framework = args[:framework] || args["framework"]
+        @scalable = args[:scalable] || args["scalable"]
+        @health_check_path = args[:health_check_path] || args["health_check_path"]
+        @embedded = args[:embedded] || args["embedded"]
+        @gear_count = args[:gear_count] || args["gear_count"]
+        @ssh_url = args[:ssh_url] || args["ssh_url"]
+        @scale_min = args[:scale_min] || args["scale_min"]
+        @scale_max = args[:scale_max] || args["scale_max"]
+        @links = args[:links] || args["links"]
+      end
 
+      def host
+        @host ||= URI(@app_url).host
+      end
+
+      #Add Cartridge
       def add_cartridge(name)
-        debug "Adding cartridge #{name}"
-        rest_method "ADD_CARTRIDGE", :name => name
+        logger.debug "Adding cartridge #{name}" if @mydebug
+        url = @links['ADD_CARTRIDGE']['href']
+        method =  @links['ADD_CARTRIDGE']['method']
+        payload = {:name => name}
+        request = new_request(:url => url, :method => method, :headers => @@headers, :payload => payload)
+        return request(request)
       end
 
+      #Get all Cartridge for this applications
       def cartridges
-        debug "Getting all cartridges for application #{name}"
-        rest_method "LIST_CARTRIDGES"
+        logger.debug "Getting all cartridges for application #{self.name}" if @mydebug
+        url = @links['LIST_CARTRIDGES']['href']
+        method =  @links['LIST_CARTRIDGES']['method']
+        request = new_request(:url => url, :method => method, :headers => @@headers)
+        return request(request)
       end
 
-      def gear_groups
-        debug "Getting all gear groups for application #{name}"
-        rest_method "GET_GEAR_GROUPS"
+      #Find Cartridge by name
+      def find_cartridge(name, options={})
+        logger.debug "Finding cartridge #{name} in app #{@name}" if @mydebug
+
+        type = options[:type]
+
+        cartridges.each { |cart| return cart if cart.name == name and (type.nil? or cart.type == type) }
+
+        suggested_msg = ""
+        unless cartridges.empty?
+          suggested_msg = "\n\nValid cartridges:"
+          cartridges.each { |cart| suggested_msg += "\n#{cart.name}" if type.nil? or cart.type == type }
+        end
+        raise RHC::CartridgeNotFoundException.new("Cartridge #{name} can't be found in application #{@name}.#{suggested_msg}")
       end
 
-      def tidy
-        debug "Starting application #{name}"
-        rest_method 'TIDY', :event => "tidy"
-      end
-
+      #Start Application
       def start
-        debug "Starting application #{name}"
-        rest_method 'START', :event => "start"
+        logger.debug "Starting application #{self.name}" if @mydebug
+        url = @links['START']['href']
+        method =  @links['START']['method']
+        payload = {:event=> "start"}
+        request = new_request(:url => url, :method => method, :headers => @@headers, :payload => payload)
+        return request(request)
       end
 
+      #Stop  Application
       def stop(force=false)
-        debug "Stopping application #{name} force-#{force}"
-
+        logger.debug "Stopping application #{self.name} force-#{force}" if @mydebug
+        url = @links['STOP']['href']
+        method =  @links['STOP']['method']
         if force
           payload = {:event=> "force-stop"}
         else
           payload = {:event=> "stop"}
         end
-
-        rest_method "STOP", payload
+        request = new_request(:url => url, :method => method, :headers => @@headers, :payload => payload)
+        return request(request)
       end
 
+      #Restart Application
       def restart
-        debug "Restarting application #{name}"
-        rest_method "RESTART", :event => "restart"
+        logger.debug "Restarting application #{self.name}" if @mydebug
+        url = @links['RESTART']['href']
+        method =  @links['RESTART']['method']
+        payload = {:event=> "restart"}
+        request = new_request(:url => url, :method => method, :headers => @@headers, :payload => payload)
+        return request(request)
       end
 
+      #Delete Application
       def destroy
-        debug "Deleting application #{name}"
-        rest_method "DELETE"
+        logger.debug "Deleting application #{self.name}" if @mydebug
+        url = @links['DELETE']['href']
+        method =  @links['DELETE']['method']
+        request = new_request(:url => url, :method => method, :headers => @@headers)
+        return request(request)
+      end
+
+      #Thread dump
+      def threaddump
+        logger.debug "Running thread dump for #{self.name}" if @mydebug
+        url = @links['THREAD_DUMP']['href']
+        method =  @links['THREAD_DUMP']['method']
+        payload = {:event => 'thread-dump'}
+        request = new_request(:url => url, :method => method, :headers => @@headers, :payload => payload)
+        return request(request)
+
       end
       alias :delete :destroy
-
-      def reload
-        debug "Reload application #{name}"
-        rest_method "RELOAD", :event => "reload"
-      end
-
-      def threaddump
-        debug "Running thread dump for #{name}"
-        rest_method "THREAD_DUMP", :event => "thread-dump"
-      end
-
-      def add_alias(app_alias)
-        debug "Running add_alias for #{name}"
-        rest_method "ADD_ALIAS", :event => "add-alias", :alias => app_alias
-      end
-
-      def remove_alias(app_alias)
-        debug "Running add_alias for #{name}"
-        rest_method "REMOVE_ALIAS", :event => "remove-alias", :alias => app_alias
-      end
-
-      #Find Cartridge by name
-      def find_cartridge(sought, options={})
-        debug "Finding cartridge #{sought} in app #{name}"
-
-        type = options[:type]
-
-        cartridges.each { |cart| return cart if cart.name == sought and (type.nil? or cart.type == type) }
-
-        suggested_msg = ""
-        valid_cartridges = cartridges.select {|c| type.nil? or c.type == type}
-        unless valid_cartridges.empty?
-          suggested_msg = "\n\nValid cartridges:"
-          valid_cartridges.each { |cart| suggested_msg += "\n#{cart.name}" }
-        end
-        raise RHC::CartridgeNotFoundException.new("Cartridge #{sought} can't be found in application #{name}.#{suggested_msg}")
-      end
-
-      #Find Cartridges by name or regex
-      def find_cartridges(name, options={})
-        if name.is_a?(Hash)
-          options = name
-          name = options[:name]
-        end
-
-        type = options[:type]
-        regex = options[:regex]
-        debug "Finding cartridge #{name || regex} in app #{@name}"
-
-        filtered = Array.new
-        cartridges.each do |cart|
-          if regex
-            filtered.push(cart) if cart.name.match(regex) and (type.nil? or cart.type == type)
-          else
-            filtered.push(cart) if cart.name == name and (type.nil? or cart.type == type)
-          end
-        end
-        filtered
-      end
-
-      def host
-        @host ||= URI(app_url).host
-      end
-
-      #Application log file tailing
-      def tail(options)
-        debug "Tail in progress for #{name}"
-
-        file_glob = options.files ? options.files : "#{cartridges.first.name}/logs/*"
-        remote_cmd = "tail#{options.opts ? ' --opts ' + Base64::encode64(options.opts).chomp : ''} #{file_glob}"
-        ssh_cmd = "ssh -t #{uuid}@#{host} '#{remote_cmd}'"
-        begin
-          #Use ssh -t to tail the logs
-          debug ssh_cmd
-          ssh_ruby(host, uuid, remote_cmd)
-        rescue SocketError => e
-          msg =<<MESSAGE
-Could not connect: #{e.message}
-You can try to run this manually if you have ssh installed:
-#{ssh_cmd}
-
-MESSAGE
-          debug "DEBUG: #{e.message}\n"
-          raise SocketError, msg
-        end
-      end
     end
   end
 end
