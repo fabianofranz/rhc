@@ -37,7 +37,6 @@ class RHC::Commands::Base
       end
 
       context_helper = option_meta[:context_helper]
-
       @options.__hash__[arg] = self.send(context_helper) if @options.__hash__[arg].nil? and context_helper
       raise ArgumentError.new("Missing required option '#{arg}'.") if option_meta[:required] and @options.__hash__[arg].nil?
     end
@@ -194,12 +193,16 @@ class RHC::Commands::Base
       raise ArgumentError("Only the last argument descriptor for an action can be a list") if arg_type == :list and list_argument_defined?
       list_argument_defined true if arg_type == :list
 
+<<<<<<< HEAD
       option_symbol = Commander::Runner.switch_to_sym(switches.last)
       args_metadata << {:name => name,
                         :description => description,
                         :switches => switches,
                         :option_symbol => option_symbol,
                         :arg_type => arg_type}
+=======
+      args_metadata << {:name => name, :description => description, :switches => switches, :arg_type => arg_type, :context_helper => options[:context]}
+>>>>>>> Adding support to context in arguments
     end
 
     def self.default_action(action)
