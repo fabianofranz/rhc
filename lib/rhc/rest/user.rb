@@ -17,8 +17,10 @@ module RHC
 
       #Find Key by name
       def find_key(name)
+        filtered = Array.new
         #TODO do a regex caomparison
-        keys.detect { |key| key.name == name }
+        keys.each { |key| filtered.push(key) if key.name == name }
+        filtered
       end
     end
   end

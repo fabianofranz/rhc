@@ -64,13 +64,10 @@ module RestSpecHelper
   def mock_app_links(domain_id='test_domain',app_id='test_app')
     [['ADD_CARTRIDGE',   "domains/#{domain_id}/apps/#{app_id}/carts/add", 'post'],
      ['LIST_CARTRIDGES', "domains/#{domain_id}/apps/#{app_id}/carts/",    'get' ],
-     ['GET_GEAR_GROUPS', "domains/#{domain_id}/apps/#{app_id}/gear_groups", 'get' ],
      ['START',           "domains/#{domain_id}/apps/#{app_id}/start",     'post'],
      ['STOP',            "domains/#{domain_id}/apps/#{app_id}/stop",      'post'],
      ['RESTART',         "domains/#{domain_id}/apps/#{app_id}/restart",   'post'],
      ['THREAD_DUMP',     "domains/#{domain_id}/apps/#{app_id}/event",     'post'],
-     ['ADD_ALIAS',       "domains/#{domain_id}/apps/#{app_id}/event",     'post'],
-     ['REMOVE_ALIAS',    "domains/#{domain_id}/apps/#{app_id}/event",     'post'],
      ['DELETE',          "domains/#{domain_id}/apps/#{app_id}/delete",    'post']]
   end
 
@@ -127,29 +124,15 @@ module RestSpecHelper
     }
   end
 
-  def mock_gear_groups_response()
-    groups = [{}]
-    type  = 'gear_groups'
-
-    return {
-      :body   => {
-        :type => type,
-        :data => groups
-      }.to_json,
-      :status => 200
-    }
-  end
-
   class MockRestClient < RHC::Rest::Client
     def initialize
       RHC::Rest::Client.stub(:new) { self }
       @domains = []
-      @user = MockRestUser.new(RHC::Config.username)
+      @keys = [
+        MockRestKey.new('mockkey1', 'ssh-rsa', 'AAAAB3NzaC1yc2EAAAADAQABAAABAQDNK8xT3O+kSltmCMsSqBfAgheB3YFJ9Y0ESJnFjFASVxH70AcCQAgdQSD/r31+atYShJdP7f0AMWiQUTw2tK434XSylnZWEyIR0V+j+cyOPdVQlns6D5gPOnOtweFF0o18YulwCOK8Q1H28GK8qyWhLe0FcMmxtKbbQgaVRvQdXZz4ThzutCJOyJm9xVb93+fatvwZW76oLLvfFJcJSOK2sgW7tJM2A83bm4mwixFDF7wO/+C9WA+PgPKJUIjvy1gZjBhRB+3b58vLOnYhPOgMNruJwzB+wJ3pg8tLJEjxSbHyyoi6OqMBs4BVV7LdzvwTDxEjcgtHVvaVNXgO5iRX'),
+        MockRestKey.new('mockkey2', 'ssh-dsa', 'AAAAB3NzaC1kc3MAAACBAPaaFj6Xjrjd8Dc4AAkJe0HigqaXMxj/87xHoV+nPgerHIceJWhPUWdW40lSASrgpAV9Eq4zzD+L19kgYdbMw0vSX5Cj3XtNOsow9MmMxFsYjTxCv4eSs/rLdGPaYZ5GVRPDu8tN42Bm8lj5o+ky3HzwW+mkQMZwcADQIgqtn6QhAAAAFQCirDfIMf/JoMOFf8CTnsTKWw/0zwAAAIAIQp6t2sLIp1d2TBfd/qLjOJA10rPADcnhBzWB/cd/oFJ8a/2nmxeSPR5Ov18T6itWqbKwvZw2UC0MrXoYbgcfVNP/ym1bCd9rB5hu1sg8WO4JIxA/47PZooT6PwTKVxHuENEzQyJL2o6ZJq+wuV0taLvm6IaM5TAZuEJ2p4TC/gAAAIBpLcVXZREa7XLY55nyidt/+UC+PxpjhPHOHbzL1OvWEaumN4wcJk/JZPppgXX9+WDkTm1SD891U0cXnGMTP0OZOHkOUHF2ZcfUe7p9kX4WjHs0OccoxV0Lny6MC4DjalJyaaEbijJHSUX3QlLcBOlPHJWpEpvWQ9P8AN4PokiGzA==')
+      ]
       @__json_args__= {:links => mock_response_links(mock_client_links)}
-    end
-
-    def user
-      @user
     end
 
     def domains
@@ -158,13 +141,9 @@ module RestSpecHelper
 
     def cartridges
       [MockRestCartridge.new("mock_standalone_cart-1", "standalone"),
-       MockRestCartridge.new("mock_standalone_cart-2", "standalone"),
-       MockRestCartridge.new("mock_unique_standalone_cart-1", "standalone"),
-       MockRestCartridge.new("jenkins-1.4", "standalone"),
        MockRestCartridge.new("mock_cart-1", "embedded"),
        MockRestCartridge.new("mock_cart-2", "embedded"),
-       MockRestCartridge.new("unique_mock_cart-1", "embedded"),
-       MockRestCartridge.new("jenkins-client-1.4", "embedded")]
+       MockRestCartridge.new("unique_mock_cart-1", "embedded")]
     end
 
     def add_domain(id)
@@ -172,35 +151,22 @@ module RestSpecHelper
       @domains << d
       d
     end
-
+    
     def sshkeys
-      @user.keys
-    end
-
-    def add_key(name, type, content)
-      @user.add_key(name, type, content)
-    end
-
-    def delete_key(name)
-      @user.keys.delete_if { |key| key.name == name }
-    end
-  end
-
-  class MockRestUser < RHC::Rest::User
-    def initialize(login)
-      @login = login
-      @keys = [
-        MockRestKey.new('mockkey1', 'ssh-rsa', 'AAAAB3NzaC1yc2EAAAADAQABAAABAQDNK8xT3O+kSltmCMsSqBfAgheB3YFJ9Y0ESJnFjFASVxH70AcCQAgdQSD/r31+atYShJdP7f0AMWiQUTw2tK434XSylnZWEyIR0V+j+cyOPdVQlns6D5gPOnOtweFF0o18YulwCOK8Q1H28GK8qyWhLe0FcMmxtKbbQgaVRvQdXZz4ThzutCJOyJm9xVb93+fatvwZW76oLLvfFJcJSOK2sgW7tJM2A83bm4mwixFDF7wO/+C9WA+PgPKJUIjvy1gZjBhRB+3b58vLOnYhPOgMNruJwzB+wJ3pg8tLJEjxSbHyyoi6OqMBs4BVV7LdzvwTDxEjcgtHVvaVNXgO5iRX'),
-        MockRestKey.new('mockkey2', 'ssh-dsa', 'AAAAB3NzaC1kc3MAAACBAPaaFj6Xjrjd8Dc4AAkJe0HigqaXMxj/87xHoV+nPgerHIceJWhPUWdW40lSASrgpAV9Eq4zzD+L19kgYdbMw0vSX5Cj3XtNOsow9MmMxFsYjTxCv4eSs/rLdGPaYZ5GVRPDu8tN42Bm8lj5o+ky3HzwW+mkQMZwcADQIgqtn6QhAAAAFQCirDfIMf/JoMOFf8CTnsTKWw/0zwAAAIAIQp6t2sLIp1d2TBfd/qLjOJA10rPADcnhBzWB/cd/oFJ8a/2nmxeSPR5Ov18T6itWqbKwvZw2UC0MrXoYbgcfVNP/ym1bCd9rB5hu1sg8WO4JIxA/47PZooT6PwTKVxHuENEzQyJL2o6ZJq+wuV0taLvm6IaM5TAZuEJ2p4TC/gAAAIBpLcVXZREa7XLY55nyidt/+UC+PxpjhPHOHbzL1OvWEaumN4wcJk/JZPppgXX9+WDkTm1SD891U0cXnGMTP0OZOHkOUHF2ZcfUe7p9kX4WjHs0OccoxV0Lny6MC4DjalJyaaEbijJHSUX3QlLcBOlPHJWpEpvWQ9P8AN4PokiGzA==')
-      ]
-    end
-
-    def keys
       @keys
     end
-
+    
+    def find_key(name)
+      # RHC::Rest::Client#find_key(name) returns the first (and only) key
+      @keys.select { |key| key.name == name }.first
+    end
+    
     def add_key(name, type, content)
       @keys << MockRestKey.new(name, type, content)
+    end
+    
+    def delete_key(name)
+      @keys.delete_if { |key| key.name == name }
     end
   end
 
@@ -225,15 +191,9 @@ module RestSpecHelper
       @applications = nil
     end
 
-    def add_application(name, type=nil, scale=nil, gear_profile='default')
-      if type.is_a?(Hash)
-        scale = type[:scale]
-        gear_profile = type[:gear_profile]
-        type = type[:cartridge]
-      end
-      a = MockRestApplication.new(name, type, self, scale, gear_profile)
+    def add_application(name, type=nil, scale=nil)
+      a = MockRestApplication.new(name, type, self, scale)
       @applications << a
-      a.add_message("Success")
       a
     end
 
@@ -242,19 +202,12 @@ module RestSpecHelper
     end
   end
 
-  class MockRestGearGroup < RHC::Rest::GearGroup
-    def initialize
-      @cartridges = [{'name' => 'fake_geargroup_cart-0.1'}]
-      @gears = [{'state' => 'started', 'id' => 'fakegearid'}]
-    end
-  end
-
   class MockRestApplication < RHC::Rest::Application
     def fakeuuid
       "fakeuuidfortests#{@name}"
     end
 
-    def initialize(name, type, domain, scale=nil, gear_profile='default')
+    def initialize(name, type, domain, scale=nil)
       @name = name
       @domain = domain
       @cartridges = []
@@ -265,19 +218,12 @@ module RestSpecHelper
       @ssh_url = "ssh://#{@uuid}@127.0.0.1"
       @embedded = {}
       @aliases = []
-      @gear_profile = gear_profile
       if scale
         @scalable = true
         @embedded = {"haproxy-1.4" => {:info => ""}}
       end
       @__json_args__= {:links => mock_response_links(mock_app_links('mock_domain_0', 'mock_app_0'))}
       add_cartridge(type, false) if type
-      @framework = type
-      @messages = []
-    end
-
-    def destroy
-      @domain.applications.delete self
     end
 
     def add_cartridge(name, embedded=true)
@@ -287,33 +233,8 @@ module RestSpecHelper
       c
     end
 
-    def gear_groups
-      # we don't have heavy interaction with gear groups yet so keep this simple
-      @gear_groups ||= [MockRestGearGroup.new]
-    end
-
     def cartridges
       @cartridges
-    end
-
-    def start
-      @app
-    end
-
-    def stop(*args)
-      @app
-    end
-
-    def restart
-      @app
-    end
-
-    def reload
-      @app
-    end
-
-    def tidy
-      @app
     end
   end
 
@@ -323,29 +244,21 @@ module RestSpecHelper
       @type = type
       @app = app
       @properties = properties
-      @status_messages = [{"message" => "started", "gear_id" => "123"}]
     end
 
     def destroy
       @app.cartridges.delete self
     end
 
-    def status
-      @status_messages
-    end
-
     def start
-      @status_messages = [{"message" => "started", "gear_id" => "123"}]
       @app
     end
 
     def stop
-      @status_messages = [{"message" => "stopped", "gear_id" => "123"}]
       @app
     end
 
     def restart
-      @status_messages = [{"message" => "started", "gear_id" => "123"}]
       @app
     end
 

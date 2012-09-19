@@ -6,6 +6,7 @@ module RHC
   module Rest
     class Client < Base
       def initialize(end_point, username, password, use_debug=false)
+        # use mydebug for legacy reasons
         @debug = use_debug
         debug "Connecting to #{end_point}"
 
@@ -24,7 +25,7 @@ module RHC
         RestClient.proxy = ENV['http_proxy']
         request = new_request(:url => end_point, :method => :get, :headers => @@headers)
 
-        super({:links => request(request)}, use_debug)
+        super :links => request(request)
       end
 
       def add_domain(id)
@@ -85,7 +86,7 @@ module RHC
           if regex
             filtered.push(cart) if cart.name.match(regex) and (type.nil? or cart.type == type)
           else
-            filtered.push(cart) if (name.nil? or cart.name == name) and (type.nil? or cart.type == type)
+            filtered.push(cart) if cart.name == name and (type.nil? or cart.type == type)
           end
         end
         return filtered
@@ -94,23 +95,9 @@ module RHC
       #find Key by name
       def find_key(name)
         debug "Finding key #{name}"
-        user.find_key(name) or raise RHC::KeyNotFoundException.new("Key #{name} does not exist")
-      end
+        user.keys.each { |key| return key if key.name == name }
 
-      def sshkeys
-        logger.debug "Finding all keys for #{user.login}" if @mydebug
-        user.keys
-      end
-
-      def add_key(name, key, content)
-        logger.debug "Adding key #{key} for #{user.login}" if @mydebug
-        user.add_key name, key, content
-      end
-
-      def delete_key(name)
-        logger.debug "Deleting key '#{name}'" if @mydebug
-        key = find_key(name)
-        key.destroy
+        raise RHC::KeyNotFoundException.new("Key #{name} does not exist")
       end
 
       def logout
