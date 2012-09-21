@@ -10,7 +10,6 @@ module RHC
     autoload :Domain,      'rhc/rest/domain'
     autoload :Key,         'rhc/rest/key'
     autoload :User,        'rhc/rest/user'
-    autoload :GearGroup,   'rhc/rest/gear_group'
 
     class Exception < RuntimeError
       attr_reader :code
@@ -101,49 +100,42 @@ module RHC
       when 'domains'
         domains = Array.new
         data.each do |domain_json|
-          domains.push(Domain.new(domain_json, @debug))
+          domains.push(Domain.new(domain_json))
         end
         return domains
       when 'domain'
-        return Domain.new(data, @debug)
+        return Domain.new(data)
       when 'applications'
         apps = Array.new
         data.each do |app_json|
-          apps.push(Application.new(app_json, @debug))
+          apps.push(Application.new(app_json))
         end
         return apps
       when 'application'
-        app = Application.new(data, @debug)
-        result['messages'].each do |message|
-          app.add_message(message['text']) if message['field'].nil? or message['field'] == 'result'
-        end
+        message = result['messages'].first['text']
+        app = Application.new(data)
+        app.add_message(message)
         return app
       when 'cartridges'
         carts = Array.new
         data.each do |cart_json|
-          carts.push(Cartridge.new(cart_json, @debug))
+          carts.push(Cartridge.new(cart_json))
         end
         return carts
       when 'cartridge'
-        return Cartridge.new(data, @debug)
+        return Cartridge.new(data)
       when 'user'
-        return User.new(data, @debug)
+        return User.new(data)
       when 'keys'
         keys = Array.new
         data.each do |key_json|
-          keys.push(Key.new(key_json, @debug))
+          keys.push(Key.new(key_json))
         end
         return keys
       when 'key'
-        return Key.new(data, @debug)
-      when 'gear_groups'
-        gears = Array.new
-        data.each do |gear_json|
-          gears.push(GearGroup.new(gear_json, @debug))
-        end
-        return gears
+        return Key.new(data)
       else
-        data
+      data
       end
     end
 
