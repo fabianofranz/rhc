@@ -194,6 +194,7 @@ module RestSpecHelper
     def add_application(name, type=nil, scale=nil)
       a = MockRestApplication.new(name, type, self, scale)
       @applications << a
+      a.add_message("Success")
       a
     end
 
@@ -224,6 +225,7 @@ module RestSpecHelper
       end
       @__json_args__= {:links => mock_response_links(mock_app_links('mock_domain_0', 'mock_app_0'))}
       add_cartridge(type, false) if type
+      @messages = []
     end
 
     def add_cartridge(name, embedded=true)
