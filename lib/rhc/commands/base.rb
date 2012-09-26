@@ -44,14 +44,24 @@ class RHC::Commands::Base
     # process args
     arg_slots = [].fill(nil, 0, args_metadata.length)
     fill_args = args.reverse
+    context_args = []
     args_metadata.each_with_index do |arg_meta, i|
       # check options
+<<<<<<< HEAD
       value = @options.__hash__[arg_meta[:option_symbol]] unless arg_meta[:option_symbol].nil?
+=======
+      name = arg_meta[:name]
+      context_helper = arg_meta[:context_helper]
+      @options.__hash__[name] = self.send(context_helper) if @options.__hash__[name].nil? and context_helper
+      value = @options.__hash__[name]
+      context_args << name if context_helper
+>>>>>>> Improved support for context args, validates ctx args and lists in the same command
       if value
         arg_slots[i] = value
       elsif arg_meta[:arg_type] == :list
         arg_slots[i] = fill_args.reverse
         fill_args = []
+        raise ArgumentError.new("Different arguments with :context and :arg_type => :list in the same interface is unsupported") if !context_args.empty? && !context_args.include?(name)
       else
         raise ArgumentError.new("Missing required argument '#{arg_meta[:name]}'.") if fill_args.empty?
         arg_slots[i] = fill_args.pop
@@ -193,16 +203,12 @@ class RHC::Commands::Base
       raise ArgumentError("Only the last argument descriptor for an action can be a list") if arg_type == :list and list_argument_defined?
       list_argument_defined true if arg_type == :list
 
-<<<<<<< HEAD
       option_symbol = Commander::Runner.switch_to_sym(switches.last)
       args_metadata << {:name => name,
                         :description => description,
                         :switches => switches,
                         :option_symbol => option_symbol,
                         :arg_type => arg_type}
-=======
-      args_metadata << {:name => name, :description => description, :switches => switches, :arg_type => arg_type, :context_helper => options[:context]}
->>>>>>> Adding support to context in arguments
     end
 
     def self.default_action(action)
