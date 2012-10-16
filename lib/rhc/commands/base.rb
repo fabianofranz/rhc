@@ -47,15 +47,12 @@ class RHC::Commands::Base
     context_args = []
     args_metadata.each_with_index do |arg_meta, i|
       # check options
-<<<<<<< HEAD
       value = @options.__hash__[arg_meta[:option_symbol]] unless arg_meta[:option_symbol].nil?
-=======
-      name = arg_meta[:name]
-      context_helper = arg_meta[:context_helper]
-      @options.__hash__[name] = self.send(context_helper) if @options.__hash__[name].nil? and context_helper
-      value = @options.__hash__[name]
-      context_args << name if context_helper
->>>>>>> Improved support for context args, validates ctx args and lists in the same command
+      #name = arg_meta[:name]
+      #context_helper = arg_meta[:context_helper]
+      #@options.__hash__[name] = self.send(context_helper) if @options.__hash__[name].nil? and context_helper
+      #value = @options.__hash__[name]
+      #context_args << name if context_helper
       if value
         arg_slots[i] = value
       elsif arg_meta[:arg_type] == :list
@@ -200,8 +197,12 @@ class RHC::Commands::Base
 
     def self.argument(name, description, switches, options={})
       arg_type = options[:arg_type]
-      raise ArgumentError("Only the last argument descriptor for an action can be a list") if arg_type == :list and list_argument_defined?
-      list_argument_defined true if arg_type == :list
+      context = options[:context]
+
+      raise ArgumentError.new("Only the last argument descriptor for an action can be a list") if arg_type == :list and list_argument_defined?
+      list_argument_name(name) if arg_type == :list
+      context_argument_name(name) if context
+      raise ArgumentError.new("Different arguments defined as :context and :arg_type => :list in the same interface is unsupported") if context_argument_defined? and list_argument_defined? and (context_argument_name? != list_argument_name?)
 
       option_symbol = Commander::Runner.switch_to_sym(switches.last)
       args_metadata << {:name => name,
@@ -221,6 +222,26 @@ class RHC::Commands::Base
       end
       def self.list_argument_defined?
         options[:list_argument_defined]
+      end
+      def self.list_argument_name(name)
+        list_argument_defined true
+        options[:list_argument_name] = name
+      end
+      def self.list_argument_name?
+        options[:list_argument_name]
+      end
+      def self.context_argument_defined(bool)
+        options[:context_argument_defined] = bool
+      end
+      def self.context_argument_defined?
+        options[:context_argument_defined]
+      end
+      def self.context_argument_name(name)
+        context_argument_defined true
+        options[:context_argument_name] = name
+      end
+      def self.context_argument_name?
+        options[:context_argument_name]
       end
       def self.options_metadata
         options[:options] ||= []
