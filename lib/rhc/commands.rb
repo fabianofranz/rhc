@@ -312,7 +312,7 @@ module RHC
 
           value = cmd.send(context_helper) if value.nil? and context_helper
 
-          if value.nil?
+          if value.nil? || (arg[:arg_type] == :list && value.empty? && !arg[:optional])
             raise ArgumentError, "Missing required argument '#{arg[:name]}'." unless arg[:optional]
             break if available.empty?
           else
