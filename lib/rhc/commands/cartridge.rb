@@ -73,9 +73,12 @@ module RHC::Commands
     syntax "<cartridge_type> [--namespace NAME] [--app NAME]"
     option ["-n", "--namespace NAME"], "Namespace of the application you are adding the cartridge to", :context => :namespace_context, :required => true
     option ["-a", "--app NAME"], "Application you are adding the cartridge to", :context => :app_context, :required => true
+    option ["-e", "--env VARIABLE=VALUE"], "Environment variable(s) to be set on this cartridge"
     argument :cart_type, "The type of the cartridge you are adding (run 'rhc cartridge list' to obtain a list of available cartridges)", ["-c", "--cartridge cart_type"]
     alias_action :"app cartridge add", :root_command => true, :deprecated => true
     def add(cart_type)
+      puts options.env.inspect
+      
       cart = check_cartridges(cart_type, :from => not_standalone_cartridges).first
 
       say "Adding #{cart.short_name} to application '#{options.app}' ... "

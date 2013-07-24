@@ -52,6 +52,7 @@ module RHC::Commands
     option ["-g", "--gear-size SIZE"], "Gear size controls how much memory and CPU your cartridges can use."
     option ["-s", "--scaling"], "Enable scaling for the web cartridge."
     option ["-r", "--repo DIR"], "Path to the Git repository (defaults to ./$app_name)"
+    option ["-e", "--env VARIABLE=VALUE"], "Environment variable(s) to be set on this app"
     option ["--from-code URL"], "URL to a Git repository that will become the initial contents of the application"
     option ["--[no-]git"], "Skip creating the local Git repository."
     option ["--nogit"], "DEPRECATED: Skip creating the local Git repository.", :deprecated => {:key => :git, :value => false}
@@ -61,6 +62,7 @@ module RHC::Commands
     argument :name, "Name for your application", ["-a", "--app NAME"], :optional => true
     argument :cartridges, "The web framework this application should use", ["-t", "--type CARTRIDGE"], :optional => true, :arg_type => :list
     def create(name, cartridges)
+
       check_config!
 
       check_name!(name)

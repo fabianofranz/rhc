@@ -17,12 +17,12 @@ module RHC::Commands
 
     summary "List all environment variables set on the application"
     description <<-DESC
-      List all environment variables set on the application. Gear-
-      level variables overriden by the 'rhc env set' command will
-      also be listed.
+      List all environment variables set on the application. 
+      Gear-level variables overriden by the 'rhc env set' command 
+      will also be listed.
 
       DESC
-    syntax "<app> [-n namespace]"
+    syntax "<app> [--namespace NAME]"
     argument :app, "Application name (required)", ["-a", "--app name"], :context => :app_context, :required => true
     option ["-n", "--namespace NAME"], "Namespace of your application", :context => :namespace_context, :required => true
     def list(app)
@@ -49,14 +49,14 @@ module RHC::Commands
       variables provided by gears are read-only.
 
       DESC
-    syntax "<app> <VARIABLE=VALUE> [... <VARIABLE=VALUE>] [-n namespace]"
-    argument :app, "Application name (required)", ["-a", "--app name"], :context => :app_context, :required => true
-    argument :env_var, "Environment variable name and value pair separated by an equal (=) sign, e.g. VARIABLE=VALUE", ["-e", "--env_var VARIABLE=VALUE"], :optional => false, :arg_type => :list
+    syntax "<VARIABLE=VALUE> [... <VARIABLE=VALUE>] [--namespace NAME] [--app NAME]"
+    argument :env, "Environment variable name and value pair separated by an equal (=) sign, e.g. VARIABLE=VALUE", ["-e", "--env VARIABLE=VALUE"], :optional => false, :arg_type => :list
+    option ["-a", "--app NAME"], "Application name (required)", :context => :app_context, :required => true
     option ["-n", "--namespace NAME"], "Namespace of your application", :context => :namespace_context, :required => true
     alias_action :add
-    def set(app, env_var)
+    def set(app, env)
       rest_app = rest_client.find_application(options.namespace, app)
-      env_var.each do |e|
+      env.each do |e|
         name, value = e.split '=', 2
         say "Setting variable #{name} to application '#{app}' ... "
       end
@@ -76,17 +76,17 @@ module RHC::Commands
       back to its default value.
 
       DESC
-    syntax "<app> <VARIABLE> [... <VARIABLE>] [-n namespace]"
-    argument :app, "Application name (required)", ["-a", "--app name"], :context => :app_context, :required => true
-    argument :env_var, "Name of the environment variable(s), e.g. VARIABLE", ["-e", "--env_var VARIABLE"], :optional => false, :arg_type => :list
+    syntax "<VARIABLE> [... <VARIABLE>] [--namespace NAME] [--app NAME]"
+    argument :env, "Name of the environment variable(s), e.g. VARIABLE", ["-e", "--env VARIABLE"], :optional => false, :arg_type => :list
+    option ["-a", "--app NAME"], "Application name (required)", :context => :app_context, :required => true
     option ["-n", "--namespace NAME"], "Namespace of your application", :context => :namespace_context, :required => true
     option ["--confirm"], "Pass to confirm removing the environment variable"
     alias_action :remove
-    def unset(app, env_var)
+    def unset(app, env)
       rest_app = rest_client.find_application(options.namespace, app)
-      confirm_action "Removing a environment variable is a destructive operation that may result in loss of data.\n\nAre you sure you wish to remove environment variable(s) #{env_var.join(', ')} from application '#{rest_app.name}'?"
+      confirm_action "Removing a environment variable is a destructive operation that may result in loss of data.\n\nAre you sure you wish to remove environment variable(s) #{env.join(', ')} from application '#{rest_app.name}'?"
 
-      env_var.each do |e|
+      env.each do |e|
         say "Removing environment variable #{e} from '#{rest_app.name}' ... "
         #rest_app.unset_environment_variable(e)
         success "removed"
@@ -96,13 +96,13 @@ module RHC::Commands
     end
 
     summary "Show the value of one or more environment variable(s) currently set to your application"
-    syntax "<app> <VARIABLE> [... <VARIABLE>] [-n namespace]"
-    argument :app, "Application name (required)", ["-a", "--app name"], :context => :app_context, :required => true
-    argument :env_var, "Name of the environment variable(s), e.g. VARIABLE", ["-e", "--env_var VARIABLE"], :optional => false, :arg_type => :list
+    syntax "<VARIABLE> [... <VARIABLE>] [--namespace NAME] [--app NAME]"
+    argument :env, "Name of the environment variable(s), e.g. VARIABLE", ["-e", "--env VARIABLE"], :optional => false, :arg_type => :list
+    option ["-a", "--app NAME"], "Application name (required)", :context => :app_context, :required => true
     option ["-n", "--namespace NAME"], "Namespace of your application", :context => :namespace_context, :required => true
-    def show(app, env_var)
+    def show(app, env)
       rest_app = rest_client.find_application(options.namespace, app)
-      say "Checking value for variable(s) #{env_var.join(', ')} on application '#{app}' ... "
+      say "Checking value for variable(s) #{env.join(', ')} on application '#{app}' ... "
 
       success "Success"
       0
