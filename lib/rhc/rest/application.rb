@@ -54,10 +54,6 @@ module RHC
           end
       end
 
-      def domain
-        domain_id
-      end
-
       def gear_info
         { :gear_count => gear_count, :gear_profile => gear_profile } unless gear_count.nil?
       end
@@ -123,29 +119,35 @@ module RHC
       
       def environment_variables
         debug "Getting all environment variables for application #{name}"
-        if (client.api_version_negotiated >= 1.4)
-          env_vars = rest_method "LIST_ENVIRONMENT_VARIABLES"
-          env_vars.map{ |e| EnvironmentVariable.new(e, client) }
-        else
-          debug "Application environment variables not supported in API"
-          []
-        end
+        #if (supports? "LIST_ENVIRONMENT_VARIABLES")
+        #  env_vars = rest_method "LIST_ENVIRONMENT_VARIABLES"
+        #  env_vars.map{ |e| EnvironmentVariable.new(e, client) }
+        #else
+        #  debug "Environment variables not supported in REST API"
+        #  []
+        #end
+        [ 
+          EnvironmentVariable.new({:id => 'MOCKED_VAR_1', :value => 'mocked_val_1'}),
+          EnvironmentVariable.new({:id => 'MOCKED_VAR_2', :value => 'mocked_val_2'})
+        ]
       end
       
-      def find_environment_variable(env_var_name, options={})
-        debug "Finding environment variable #{env_var_name} in app #{@name}"
-        if name.is_a?(Hash)
-          options = name
-          name = options[:name]
-        end
-        environment_variables.each { |e| return e if e.id == env_var_name }
-        raise RHC::EnvironmentVariableNotFoundException.new("Environment variable #{env_var_name} can't be found in application #{name}.")
+      def find_environment_variable(env_var_name)
+        find_environment_variables(Array.new(env_var_name))
       end
 
-      def set_environment_variable(env_var_name, env_var_value)
+      def find_environment_variables(env_var_names)
+        env_var_names = Array.new(env_var_names)
+        debug "Finding environment variable(s) #{env_var_names.inspect} in app #{@name}"
+        env_vars = environment_variables.select { |e| env_var_names.include?(e.id) }
+        raise RHC::EnvironmentVariableNotFoundException.new("Environment variable(s) #{env_var_names.inspect} can't be found in application #{name}.") if env_vars.empty?
+        env_vars
+      end
+
+      def set_environment_variables(environment_variables)
         debug "Adding environment variables #{env_var_name} for #{name}"        
-        if (client.api_version_negotiated >= 1.4)        
-          rest_method "ADD_ENVIRONMENT_VARIABLE", id: env_var_name, value: env_var_value
+        if (supports? "SET_ENVIRONMENT_VARIABLES")
+          rest_method "SET_ENVIRONMENT_VARIABLES", environment_variables: environment_variables
         else
           debug "Application environment variables not supported in API"          
         end
@@ -153,11 +155,7 @@ module RHC
       
       def unset_environment_variable(env_var_name)
         debug "Removing environment variables #{env_var_name} from #{name}"
-        if (client.api_version_negotiated >= 1.4)
-          find_environment_variable(env_name).destroy
-        else
-          debug "Application environment variables not supported in API"          
-        end
+        find_environment_variable(env_name).destroy
       end
 
       def add_alias(app_alias)

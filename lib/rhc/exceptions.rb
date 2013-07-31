@@ -37,6 +37,12 @@ module RHC
     end
   end
 
+  class EnvironmentVariablesNotSupportedException < Exception
+    def initialize(message="Server does not support environment variables")
+      super message, 158
+    end
+  end
+
   class KeyNotFoundException < Exception
     def initialize(message="SSHKey not found")
       super message, 118

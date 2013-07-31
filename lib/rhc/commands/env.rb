@@ -25,15 +25,15 @@ module RHC::Commands
     syntax "<app> [--namespace NAME]"
     argument :app, "Application name (required)", ["-a", "--app name"], :context => :app_context, :required => true
     option ["-n", "--namespace NAME"], "Namespace of your application", :context => :namespace_context, :required => true
+    option ["--table"], "Format as table"
+    option ["--export"], "Format as the 'export' command"
     def list(app)
       rest_app = rest_client.find_application(options.namespace, app)
-      #env_vars = rest_app.environment_variables
+      env_vars = rest_app.environment_variables
 
-      #pager
+      pager
 
-      #say table(env_vars.collect do |e|
-      #  [e.id]
-      #end)
+      print_env_list(env_vars, options.table ? :table : options.export ? :export : :env)
       0
     end
 
@@ -54,8 +54,8 @@ module RHC::Commands
     option ["-a", "--app NAME"], "Application name (required)", :context => :app_context, :required => true
     option ["-n", "--namespace NAME"], "Namespace of your application", :context => :namespace_context, :required => true
     alias_action :add
-    def set(app, env)
-      rest_app = rest_client.find_application(options.namespace, app)
+    def set(env)
+      rest_app = rest_client.find_application(options.namespace, options.app)
       env.each do |e|
         name, value = e.split '=', 2
         say "Setting variable #{name} to application '#{app}' ... "
@@ -82,8 +82,8 @@ module RHC::Commands
     option ["-n", "--namespace NAME"], "Namespace of your application", :context => :namespace_context, :required => true
     option ["--confirm"], "Pass to confirm removing the environment variable"
     alias_action :remove
-    def unset(app, env)
-      rest_app = rest_client.find_application(options.namespace, app)
+    def unset(env)
+      rest_app = rest_client.find_application(options.namespace, options.app)
       confirm_action "Removing a environment variable is a destructive operation that may result in loss of data.\n\nAre you sure you wish to remove environment variable(s) #{env.join(', ')} from application '#{rest_app.name}'?"
 
       env.each do |e|
@@ -100,13 +100,32 @@ module RHC::Commands
     argument :env, "Name of the environment variable(s), e.g. VARIABLE", ["-e", "--env VARIABLE"], :optional => false, :arg_type => :list
     option ["-a", "--app NAME"], "Application name (required)", :context => :app_context, :required => true
     option ["-n", "--namespace NAME"], "Namespace of your application", :context => :namespace_context, :required => true
-    def show(app, env)
-      rest_app = rest_client.find_application(options.namespace, app)
-      say "Checking value for variable(s) #{env.join(', ')} on application '#{app}' ... "
-
-      success "Success"
+    option ["--table"], "Format as table"
+    option ["--export"], "Format as the 'export' command"
+    def show(env)
+      rest_app = rest_client.find_application(options.namespace, options.app)
+      rest_envs = rest_app.find_environment_variables(env)
+      print_env_list(rest_envs, options.table ? :table : options.export ? :export : :env)
       0
     end
 
+    def print_env_list(env_vars=[], format=nil)
+      case format
+        when :table
+          say table(env_vars.collect do |e|
+            [e.id, e.value]
+          end)
+        when :export
+          env_vars.each do |e|
+            say "#{e.id}=\"#{e.value}\"\n"
+          end
+        else
+          env_vars.each do |e|
+            say "#{e.id}=#{e.value}\n"
+          end
+        end
+    end
+
   end
+
 end
