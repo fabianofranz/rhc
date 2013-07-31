@@ -133,11 +133,11 @@ module RHC
       end
       
       def find_environment_variable(env_var_name)
-        find_environment_variables(Array.new(env_var_name))
+        find_environment_variables(env_var_name)
       end
 
       def find_environment_variables(env_var_names)
-        env_var_names = Array.new(env_var_names)
+        env_var_names = [env_var_names].flatten
         debug "Finding environment variable(s) #{env_var_names.inspect} in app #{@name}"
         env_vars = environment_variables.select { |e| env_var_names.include?(e.id) }
         raise RHC::EnvironmentVariableNotFoundException.new("Environment variable(s) #{env_var_names.inspect} can't be found in application #{name}.") if env_vars.empty?
@@ -154,8 +154,10 @@ module RHC
       end
       
       def unset_environment_variable(env_var_name)
-        debug "Removing environment variables #{env_var_name} from #{name}"
-        find_environment_variable(env_name).destroy
+        [env_var_name].flatten.each do |e|
+          debug "Removing environment variables #{e} from #{name}"
+          #find_environment_variable(env_name).destroy
+        end
       end
 
       def add_alias(app_alias)

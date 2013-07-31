@@ -58,7 +58,7 @@ module RHC::Commands
       rest_app = rest_client.find_application(options.namespace, options.app)
       env.each do |e|
         name, value = e.split '=', 2
-        say "Setting variable #{name} to application '#{app}' ... "
+        say "Setting variable #{name} to application '#{rest_app.name}' ... "
       end
 
       #rest_cartridge = rest_app.set_environment_variable(name, value)
@@ -84,11 +84,11 @@ module RHC::Commands
     alias_action :remove
     def unset(env)
       rest_app = rest_client.find_application(options.namespace, options.app)
-      confirm_action "Removing a environment variable is a destructive operation that may result in loss of data.\n\nAre you sure you wish to remove environment variable(s) #{env.join(', ')} from application '#{rest_app.name}'?"
+      confirm_action "Removing environment variables is a destructive operation that may result in loss of data.\n\nAre you sure you wish to remove environment variable(s) #{env.join(', ')} from application '#{rest_app.name}'?"
 
       env.each do |e|
         say "Removing environment variable #{e} from '#{rest_app.name}' ... "
-        #rest_app.unset_environment_variable(e)
+        rest_app.unset_environment_variable(e)
         success "removed"
       end
 
@@ -114,7 +114,7 @@ module RHC::Commands
         when :table
           say table(env_vars.collect do |e|
             [e.id, e.value]
-          end)
+          end, :header => ['Name', 'Value'])
         when :export
           env_vars.each do |e|
             say "#{e.id}=\"#{e.value}\"\n"
