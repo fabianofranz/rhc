@@ -128,26 +128,28 @@ module RHC
         #end
         [ 
           EnvironmentVariable.new({:id => 'MOCKED_VAR_1', :value => 'mocked_val_1'}),
-          EnvironmentVariable.new({:id => 'MOCKED_VAR_2', :value => 'mocked_val_2'})
+          EnvironmentVariable.new({:id => 'MOCKED_VAR_2', :value => 'mocked_val_2'}),
+          EnvironmentVariable.new({:id => 'MOCKED_VAR_3', :value => 'mocked_val_3'})
         ]
       end
       
       def find_environment_variable(env_var_name)
-        find_environment_variables(env_var_name)
+        find_environment_variables(env_var_name).first
       end
 
-      def find_environment_variables(env_var_names)
+      def find_environment_variables(env_var_names=nil)
+        return environment_variables if env_var_names.nil?
         env_var_names = [env_var_names].flatten
         debug "Finding environment variable(s) #{env_var_names.inspect} in app #{@name}"
         env_vars = environment_variables.select { |e| env_var_names.include?(e.id) }
-        raise RHC::EnvironmentVariableNotFoundException.new("Environment variable(s) #{env_var_names.inspect} can't be found in application #{name}.") if env_vars.empty?
+        raise RHC::EnvironmentVariableNotFoundException.new("Environment variable(s) #{env_var_names.join(', ')} can't be found in application #{name}.") if env_vars.empty?
         env_vars
       end
 
-      def set_environment_variables(environment_variables)
+      def set_environment_variable(environment_variable)
         debug "Adding environment variables #{env_var_name} for #{name}"        
         if (supports? "SET_ENVIRONMENT_VARIABLES")
-          rest_method "SET_ENVIRONMENT_VARIABLES", environment_variables: environment_variables
+          rest_method "SET_ENVIRONMENT_VARIABLES", environment_variable: environment_variable
         else
           debug "Application environment variables not supported in API"          
         end

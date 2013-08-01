@@ -134,6 +134,30 @@ module RHC
       "This gear costs an additional $#{cart.usage_rate} per gear after the first 3 gears."
     end
 
+    def default_display_env_var(env_var_name, env_var_value=nil)
+      info "#{env_var_name}#{env_var_value.nil? ? '' : '=' + env_var_value}"
+    end
+
+    def display_env_var_list(env_var_list, format=nil)
+      case format
+
+        when :table
+          say table(env_var_list.collect do |e|
+            [e.id, e.value]
+          end, :header => ['Name', 'Value'])
+
+        when :export
+          env_var_list.each do |e|
+            say "#{e.id}=\"#{e.value}\""
+          end
+          
+        else
+          env_var_list.each do |e|
+            default_display_env_var(e.id, e.value)
+          end
+        end
+    end
+
     private
       def format_table(heading,values,opts = {})
         values = values.to_a if values.is_a? Hash
@@ -194,5 +218,6 @@ module RHC
           end
         end
       end
+
   end
 end

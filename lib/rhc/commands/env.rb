@@ -15,28 +15,6 @@ module RHC::Commands
     default_action :help
     alias_action :"app env", :root_command => true
 
-    summary "List all environment variables set on the application"
-    description <<-DESC
-      List all environment variables set on the application. 
-      Gear-level variables overriden by the 'rhc env set' command 
-      will also be listed.
-
-      DESC
-    syntax "<app> [--namespace NAME]"
-    argument :app, "Application name (required)", ["-a", "--app name"], :context => :app_context, :required => true
-    option ["-n", "--namespace NAME"], "Namespace of your application", :context => :namespace_context, :required => true
-    option ["--table"], "Format as table"
-    option ["--export"], "Format as the 'export' command"
-    def list(app)
-      rest_app = rest_client.find_application(options.namespace, app)
-      env_vars = rest_app.environment_variables
-
-      pager
-
-      print_env_list(env_vars, options.table ? :table : options.export ? :export : :env)
-      0
-    end
-
     summary "Set one or more environment variable(s) to your application"
     description <<-DESC
       Set one or more environment variable(s) to your application. 
@@ -53,30 +31,23 @@ module RHC::Commands
     argument :env, "Environment variable name and value pair separated by an equal (=) sign, e.g. VARIABLE=VALUE", ["-e", "--env VARIABLE=VALUE"], :optional => false, :arg_type => :list
     option ["-a", "--app NAME"], "Application name (required)", :context => :app_context, :required => true
     option ["-n", "--namespace NAME"], "Namespace of your application", :context => :namespace_context, :required => true
+    option ["--confirm"], "Pass to confirm setting the environment variable(s)"
     alias_action :add
     def set(env)
       rest_app = rest_client.find_application(options.namespace, options.app)
 
-      say "Setting variable(s) to application '#{rest_app.name}':"
+      env_vars = {}
+      env.each {|e| env_vars.merge! collect_env_vars(e) }
 
-      env.each do |e|
-        if match = e.match(/(^.*)(=)(.*)/i)
-          name, separator, value = match.captures
-          say "#{name}=#{value}"
-        elsif File.file? e
-          File.readlines(e).each do |line|
-            if match = line.match(/(^.*)(=)(.*)/i)
-              name, separator, value = match.captures
-              say "#{name}=#{value}"
-            end
-          end
-        end
-      end
+      say "Setting environment variable(s) to application '#{rest_app.name}':"
+
+      env_vars.each {|key, value| default_display_env_var(key, value) }
+
+      confirm_action 'Confirm?'
 
       say 'Wait ... '
+      #rest_app.set_environment_variable(env_vars)
       success 'Success'
-
-      #rest_cartridge = rest_app.set_environment_variable(name, value)
 
       0
     end
@@ -98,13 +69,43 @@ module RHC::Commands
     alias_action :remove
     def unset(env)
       rest_app = rest_client.find_application(options.namespace, options.app)
-      confirm_action "Removing environment variables is a destructive operation that may result in loss of data.\n\nAre you sure you wish to remove environment variable(s) #{env.join(', ')} from application '#{rest_app.name}'?"
+
+      env_vars = []
+
+      say 'Removing environment variables is a destructive operation that may result in loss of data.'
 
       env.each do |e|
-        say "Removing environment variable #{e} from '#{rest_app.name}' ... "
         rest_app.unset_environment_variable(e)
-        success "removed"
+        default_display_env_var(e)
+        env_vars << e
       end
+
+      confirm_action "Are you sure you wish to remove the environment variable(s) above from application '#{rest_app.name}'?"
+      #rest_app.unset_environment_variable(env_vars)
+      success 'Success'
+
+      0
+    end
+
+    summary "List all environment variables set on the application"
+    description <<-DESC
+      List all environment variables set on the application. 
+      Gear-level variables overriden by the 'rhc env set' command 
+      will also be listed.
+
+      DESC
+    syntax "<app> [--namespace NAME]"
+    argument :app, "Application name (required)", ["-a", "--app name"], :context => :app_context, :required => true
+    option ["-n", "--namespace NAME"], "Namespace of your application", :context => :namespace_context, :required => true
+    option ["--table"], "Format as table"
+    option ["--export"], "Format as the 'export' command"
+    def list(app)
+      rest_app = rest_client.find_application(options.namespace, app)
+      rest_env_vars = rest_app.environment_variables
+
+      pager
+
+      display_env_var_list(rest_env_vars, options.table ? :table : options.export ? :export : :env)
 
       0
     end
@@ -118,26 +119,13 @@ module RHC::Commands
     option ["--export"], "Format as the 'export' command"
     def show(env)
       rest_app = rest_client.find_application(options.namespace, options.app)
-      rest_envs = rest_app.find_environment_variables(env)
-      print_env_list(rest_envs, options.table ? :table : options.export ? :export : :env)
-      0
-    end
+      rest_env_vars = rest_app.find_environment_variables(env)
 
-    def print_env_list(env_vars=[], format=nil)
-      case format
-        when :table
-          say table(env_vars.collect do |e|
-            [e.id, e.value]
-          end, :header => ['Name', 'Value'])
-        when :export
-          env_vars.each do |e|
-            say "#{e.id}=\"#{e.value}\"\n"
-          end
-        else
-          env_vars.each do |e|
-            say "#{e.id}=#{e.value}\n"
-          end
-        end
+      pager
+
+      display_env_var_list(rest_env_vars, options.table ? :table : options.export ? :export : :env)
+
+      0
     end
 
   end

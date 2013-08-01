@@ -424,5 +424,34 @@ module RHC
 
       [status, stdout, stderr]
     end
+
+    def collect_env_vars(item)
+      env_vars = {}
+
+      if match = item.match(env_var_regex_pattern)
+
+        name, separator, value = match.captures
+        env_vars[name] = value
+
+      elsif File.file? item
+
+        File.readlines(item).each do |line|
+
+          if match = line.match(env_var_regex_pattern)
+
+            name, separator, value = match.captures
+            env_vars[name] = value
+
+          end
+        end
+      end
+
+      env_vars
+    end
+
+    def env_var_regex_pattern 
+      /(^.*)(=)(.*)/i
+    end
+
   end
 end

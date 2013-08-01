@@ -94,6 +94,11 @@ module RHC::Commands
              ).each { |s| say "  #{s}" }
       end
 
+      if options.env
+        env_vars = collect_env_vars(options.env)
+        # TODO
+      end
+
       paragraph do
         say "Creating application '#{name}' ... "
 

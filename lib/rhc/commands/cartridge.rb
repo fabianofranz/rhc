@@ -86,6 +86,12 @@ module RHC::Commands
       say format_usage_message(cart) if cart.usage_rate?
 
       rest_app = rest_client.find_application(options.namespace, options.app, :include => :cartridges)
+
+      if options.env
+        env_vars = collect_env_vars(options.env)
+        # TODO
+      end
+
       rest_cartridge = rest_app.add_cartridge(cart)
 
       success "done"
