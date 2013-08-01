@@ -56,14 +56,28 @@ module RHC::Commands
     alias_action :add
     def set(env)
       rest_app = rest_client.find_application(options.namespace, options.app)
+
+      say "Setting variable(s) to application '#{rest_app.name}':"
+
       env.each do |e|
-        name, value = e.split '=', 2
-        say "Setting variable #{name} to application '#{rest_app.name}' ... "
+        if match = e.match(/(^.*)(=)(.*)/i)
+          name, separator, value = match.captures
+          say "#{name}=#{value}"
+        elsif File.file? e
+          File.readlines(e).each do |line|
+            if match = line.match(/(^.*)(=)(.*)/i)
+              name, separator, value = match.captures
+              say "#{name}=#{value}"
+            end
+          end
+        end
       end
+
+      say 'Wait ... '
+      success 'Success'
 
       #rest_cartridge = rest_app.set_environment_variable(name, value)
 
-      success "Success"
       0
     end
 
