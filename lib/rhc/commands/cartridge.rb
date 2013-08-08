@@ -76,9 +76,7 @@ module RHC::Commands
     option ["-e", "--env VARIABLE=VALUE"], "Environment variable(s) to be set on this cartridge"
     argument :cart_type, "The type of the cartridge you are adding (run 'rhc cartridge list' to obtain a list of available cartridges)", ["-c", "--cartridge cart_type"]
     alias_action :"app cartridge add", :root_command => true, :deprecated => true
-    def add(cart_type)
-      puts options.env.inspect
-      
+    def add(cart_type)      
       cart = check_cartridges(cart_type, :from => not_standalone_cartridges).first
 
       say "Adding #{cart.short_name} to application '#{options.app}' ... "

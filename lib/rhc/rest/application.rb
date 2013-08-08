@@ -6,7 +6,8 @@ module RHC
       define_attr :domain_id, :name, :creation_time, :uuid,
                   :git_url, :app_url, :gear_profile, :framework,
                   :scalable, :health_check_path, :embedded, :gear_count,
-                  :ssh_url, :building_app, :cartridges, :initial_git_url
+                  :ssh_url, :building_app, :cartridges, :initial_git_url,
+                  :environment_variables
       alias_method :domain_name, :domain_id
 
       # Query helper to say consistent with cartridge
@@ -52,6 +53,10 @@ module RHC
             debug "Getting all cartridges for application #{name}"
             rest_method "LIST_CARTRIDGES"
           end
+      end
+
+      def domain
+        domain_id
       end
 
       def gear_info
@@ -118,19 +123,7 @@ module RHC
       end
       
       def environment_variables
-        debug "Getting all environment variables for application #{name}"
-        #if (supports? "LIST_ENVIRONMENT_VARIABLES")
-        #  env_vars = rest_method "LIST_ENVIRONMENT_VARIABLES"
-        #  env_vars.map{ |e| EnvironmentVariable.new(e, client) }
-        #else
-        #  debug "Environment variables not supported in REST API"
-        #  []
-        #end
-        [ 
-          EnvironmentVariable.new({:id => 'MOCKED_VAR_1', :value => 'mocked_val_1'}),
-          EnvironmentVariable.new({:id => 'MOCKED_VAR_2', :value => 'mocked_val_2'}),
-          EnvironmentVariable.new({:id => 'MOCKED_VAR_3', :value => 'mocked_val_3'})
-        ]
+        @environment_variables || {}
       end
       
       def find_environment_variable(env_var_name)
@@ -141,24 +134,28 @@ module RHC
         return environment_variables if env_var_names.nil?
         env_var_names = [env_var_names].flatten
         debug "Finding environment variable(s) #{env_var_names.inspect} in app #{@name}"
-        env_vars = environment_variables.select { |e| env_var_names.include?(e.id) }
+        env_vars = environment_variables.select { |key, value| !env_var_names[key].nil? }
         raise RHC::EnvironmentVariableNotFoundException.new("Environment variable(s) #{env_var_names.join(', ')} can't be found in application #{name}.") if env_vars.empty?
         env_vars
       end
 
-      def set_environment_variable(environment_variable)
-        debug "Adding environment variables #{env_var_name} for #{name}"        
+      def set_environment_variables(environment_variables={})
+        debug "Adding environment variable(s) #{environment_variables.inspect} for #{name}"        
         if (supports? "SET_ENVIRONMENT_VARIABLES")
-          rest_method "SET_ENVIRONMENT_VARIABLES", environment_variable: environment_variable
+          rest_method "SET_ENVIRONMENT_VARIABLES", :event => 'set-environment-variables', :environment_variables => environment_variables
+          @environment_variables.merge! environment_variables
         else
           debug "Application environment variables not supported in API"          
         end
       end
       
-      def unset_environment_variable(env_var_name)
-        [env_var_name].flatten.each do |e|
-          debug "Removing environment variables #{e} from #{name}"
-          #find_environment_variable(env_name).destroy
+      def unset_environment_variable(environment_variables=[])
+        debug "Removing environment variable(s) #{environment_variables.inspect} for #{name}"        
+        if (supports? "UNSET_ENVIRONMENT_VARIABLES")
+          rest_method "UNSET_ENVIRONMENT_VARIABLES", :event => 'unset-environment-variables', :environment_variables => environment_variables
+          environment_variables.each { |key| @environment_variables.delete key }
+        else
+          debug "Application environment variables not supported in API"          
         end
       end
 

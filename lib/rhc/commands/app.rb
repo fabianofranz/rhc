@@ -62,7 +62,6 @@ module RHC::Commands
     argument :name, "Name for your application", ["-a", "--app NAME"], :optional => true
     argument :cartridges, "The web framework this application should use", ["-t", "--type CARTRIDGE"], :optional => true, :arg_type => :list
     def create(name, cartridges)
-
       check_config!
 
       check_name!(name)

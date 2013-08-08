@@ -218,6 +218,5 @@ module RHC
           end
         end
       end
-
   end
 end
