@@ -358,7 +358,7 @@ module RHC::Rest::Mock
 
     def mock_app_links(domain_id='test_domain',app_id='test_app')
       [['ADD_CARTRIDGE',                "domains/#{domain_id}/apps/#{app_id}/carts/add",             'post'],
-       ['LIST_CARTRIDGES',              "domains/#{domain_id}/applications/#{app_id}/cartridges",    'get' ],
+       ['LIST_CARTRIDGES',              "broker/rest/domains/#{domain_id}/applications/#{app_id}/cartridges",    'get' ],
        ['GET_GEAR_GROUPS',              "domains/#{domain_id}/apps/#{app_id}/gear_groups",           'get' ],
        ['START',                        "domains/#{domain_id}/apps/#{app_id}/start",                 'post'],
        ['STOP',                         "domains/#{domain_id}/apps/#{app_id}/stop",                  'post'],
@@ -368,7 +368,7 @@ module RHC::Rest::Mock
        ['REMOVE_ALIAS',                 "domains/#{domain_id}/apps/#{app_id}/event",                 'post'],
        ['LIST_ALIASES',                 "domains/#{domain_id}/apps/#{app_id}/aliases",               'get'],
        ['SET_ENVIRONMENT_VARIABLES',    "domains/#{domain_id}/apps/#{app_id}/event",                 'post'],
-       ['UNSET_ENVIRONMENT_VARIABLES', "domains/#{domain_id}/apps/#{app_id}/event",                  'delete'],
+       ['UNSET_ENVIRONMENT_VARIABLES',  "domains/#{domain_id}/apps/#{app_id}/event",                 'delete'],
        ['DELETE',                       "broker/rest/domains/#{domain_id}/applications/#{app_id}",   'DELETE']]
     end
 
@@ -803,14 +803,6 @@ module RHC::Rest::Mock
 
     def aliases
       @aliases
-    end
-
-    def set_environment_variables(environment_variables={})
-      @environment_variables.merge! environment_variables
-    end
-    
-    def unset_environment_variable(environment_variables=[])
-      environment_variables.each { |key| @environment_variables.delete key }
     end
 
   end

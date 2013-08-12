@@ -34,7 +34,8 @@ module RHC::Commands
     option ["--confirm"], "Pass to confirm setting the environment variable(s)"
     alias_action :add
     def set(env)
-      rest_app = rest_client.find_application(options.namespace, options.app)
+      rest_app = rest_client.find_application(options.namespace, options.app, :include => :environment_variables
+        )
 
       env_vars = {}
       env.each {|e| env_vars.merge! collect_env_vars(e) }
@@ -46,7 +47,7 @@ module RHC::Commands
       confirm_action 'Confirm?'
 
       say 'Wait ... '
-      #rest_app.set_environment_variable(env_vars)
+      rest_app.set_environment_variables(env_vars)
       success 'Success'
 
       0
@@ -68,20 +69,20 @@ module RHC::Commands
     option ["--confirm"], "Pass to confirm removing the environment variable"
     alias_action :remove
     def unset(env)
-      rest_app = rest_client.find_application(options.namespace, options.app)
+      rest_app = rest_client.find_application(options.namespace, options.app, :include => :environment_variables)
 
       env_vars = []
 
       say 'Removing environment variables is a destructive operation that may result in loss of data.'
 
       env.each do |e|
-        rest_app.unset_environment_variable(e)
         default_display_env_var(e)
         env_vars << e
       end
 
       confirm_action "Are you sure you wish to remove the environment variable(s) above from application '#{rest_app.name}'?"
-      #rest_app.unset_environment_variable(env_vars)
+      say 'Wait ... '
+      rest_app.unset_environment_variables(env_vars)
       success 'Success'
 
       0
@@ -100,7 +101,7 @@ module RHC::Commands
     option ["--table"], "Format as table"
     option ["--export"], "Format as the 'export' command"
     def list(app)
-      rest_app = rest_client.find_application(options.namespace, app)
+      rest_app = rest_client.find_application(options.namespace, app, :include => :environment_variables)
       rest_env_vars = rest_app.environment_variables
 
       pager
@@ -118,7 +119,7 @@ module RHC::Commands
     option ["--table"], "Format as table"
     option ["--export"], "Format as the 'export' command"
     def show(env)
-      rest_app = rest_client.find_application(options.namespace, options.app)
+      rest_app = rest_client.find_application(options.namespace, options.app, :include => :environment_variables)
       rest_env_vars = rest_app.find_environment_variables(env)
 
       pager

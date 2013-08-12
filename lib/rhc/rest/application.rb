@@ -1,4 +1,5 @@
 require 'uri'
+require 'json'
 
 module RHC
   module Rest
@@ -123,7 +124,8 @@ module RHC
       end
       
       def environment_variables
-        @environment_variables || {}
+        #TODO fix, handling api with string format instead of json
+        @environment_variables ||= attributes['environment_variables'].present? ? JSON.parse(attributes['environment_variables'].chomp('"').reverse.chomp('"').reverse) : {}
       end
       
       def find_environment_variable(env_var_name)
@@ -139,23 +141,23 @@ module RHC
         env_vars
       end
 
-      def set_environment_variables(environment_variables={})
-        debug "Adding environment variable(s) #{environment_variables.inspect} for #{name}"        
+      def set_environment_variables(env_vars={})
+        debug "Adding environment variable(s) #{environment_variables.inspect} for #{name}"
         if (supports? "SET_ENVIRONMENT_VARIABLES")
-          rest_method "SET_ENVIRONMENT_VARIABLES", :event => 'set-environment-variables', :environment_variables => environment_variables
-          @environment_variables.merge! environment_variables
+          rest_method "SET_ENVIRONMENT_VARIABLES", :event => 'set-environment-variables', :environment_variables => env_vars
+          environment_variables.merge! env_vars
         else
-          debug "Application environment variables not supported in API"          
+          raise RHC::EnvironmentVariablesNotSupportedException.new
         end
       end
       
-      def unset_environment_variable(environment_variables=[])
+      def unset_environment_variables(env_vars=[])
         debug "Removing environment variable(s) #{environment_variables.inspect} for #{name}"        
         if (supports? "UNSET_ENVIRONMENT_VARIABLES")
-          rest_method "UNSET_ENVIRONMENT_VARIABLES", :event => 'unset-environment-variables', :environment_variables => environment_variables
-          environment_variables.each { |key| @environment_variables.delete key }
+          rest_method "UNSET_ENVIRONMENT_VARIABLES", :event => 'unset-environment-variables', :environment_variables => env_vars
+          env_vars.each { |key| environment_variables.delete key }
         else
-          debug "Application environment variables not supported in API"          
+          raise RHC::EnvironmentVariablesNotSupportedException.new
         end
       end
 
