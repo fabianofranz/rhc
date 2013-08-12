@@ -136,7 +136,7 @@ module RHC
         return environment_variables if env_var_names.nil?
         env_var_names = [env_var_names].flatten
         debug "Finding environment variable(s) #{env_var_names.inspect} in app #{@name}"
-        env_vars = environment_variables.select { |key, value| !env_var_names[key].nil? }
+        env_vars = environment_variables.select { |key, value| env_var_names.include? key }
         raise RHC::EnvironmentVariableNotFoundException.new("Environment variable(s) #{env_var_names.join(', ')} can't be found in application #{name}.") if env_vars.empty?
         env_vars
       end
