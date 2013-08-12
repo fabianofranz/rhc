@@ -64,7 +64,7 @@ module RHC::Rest::Mock
         to_return({
           :body => {
             :data => mock_response_links(authorizations ? mock_api_with_authorizations : mock_real_client_links),
-            :supported_api_versions => [1.0, 1.1, 1.2, 1.3, 1.4, 1.5],
+            :supported_api_versions => [1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6],
           }.to_json
         })
     end
@@ -803,6 +803,26 @@ module RHC::Rest::Mock
 
     def aliases
       @aliases
+    end
+
+    def environment_variables
+      @environment_variables || {}
+    end
+
+    def set_environment_variables(env_vars={})
+      if (supports? "SET_ENVIRONMENT_VARIABLES")
+        environment_variables.merge! env_vars
+      else
+        raise RHC::EnvironmentVariablesNotSupportedException.new
+      end
+    end
+    
+    def unset_environment_variables(env_vars=[])
+      if (supports? "UNSET_ENVIRONMENT_VARIABLES")
+        env_vars.each { |key| environment_variables.delete key }
+      else
+        raise RHC::EnvironmentVariablesNotSupportedException.new
+      end
     end
 
   end

@@ -20,49 +20,9 @@ describe RHC::Commands::Env do
   let!(:rest_client){ MockRestClient.new }
 
   before(:each) do
-
     user_config
-    domain = rest_client.add_domain("mock_domain_0")
-    domain.add_application("mock_app_0", "ruby-1.8.7")
-
-    stub_api_request(:any, app_0_links['SET_ENVIRONMENT_VARIABLES']['relative'], false).
-      with(:body => {:event => 'set-environment-variables', :environment_variables => {'FOO' => '123', 'BAR' => '456'}}).
-      to_return({ :body   => {
-          :type => 'application',
-          :data =>
-          { :domain_id       => 'mock_domain_0',
-             :name            => 'mock_app_0',
-             :creation_time   => Time.new.to_s,
-             :uuid            => 1234,
-             :aliases         => [],
-             :server_identity => 'mock_server_identity',
-             :environment_variables => {'FOO' => '123', 'BAR' => '456'},
-             :links           => mock_response_links(mock_app_links('mock_domain_0','mock_app_0')),
-           },
-          :messages => [{:text => "RESULT:\nApplication event 'set-environment-variables' successful"}]
-        }.to_json,
-        :status => 200
-      })
-
-    stub_api_request(:any, app_0_links['UNSET_ENVIRONMENT_VARIABLES']['relative'], false).
-      with(:body => {:event => 'unset-environment-variables', :environment_variables => ['FOO', 'BAR']}).
-      to_return({ :body   => {
-          :type => 'application',
-          :data =>
-          { :domain_id       => 'mock_domain_0',
-             :name            => 'mock_app_0',
-             :creation_time   => Time.new.to_s,
-             :uuid            => 1234,
-             :aliases         => [],
-             :server_identity => 'mock_server_identity',
-             :environment_variables => {},
-             :links           => mock_response_links(mock_app_links('mock_domain_0','mock_app_0')),
-           },
-          :messages => [{:text => "RESULT:\nApplication event 'unset-environment-variables' successful"}]
-        }.to_json,
-        :status => 200
-      })
-
+    @rest_domain = rest_client.add_domain("mock_domain_0")
+    @rest_app = @rest_domain.add_application("mock_app_0", "ruby-1.8.7")
   end
 
   describe 'env help' do
@@ -172,7 +132,19 @@ describe RHC::Commands::Env do
     end
 
     context 'when run with multiple env vars from file' do
-      #TODO
+      let(:arguments) {['env', 'set', File.expand_path('../../assets/env_vars.txt', __FILE__), '--app', 'mock_app_0', '--noprompt', '--confirm' ]}
+        it { succeed_with_message /Setting environment variable\(s\) to application 'mock_app_0'/ }
+        it { succeed_with_message /FOO=123/ }
+        it { succeed_with_message /BAR=456/ }
+        it { succeed_with_message /MY_OPENSHIFT_ENV_VAR/ }
+        it { succeed_with_message /MY_EMPTY_ENV_VAR/ }
+        it { succeed_with_message /Wait \.\.\./ }
+        it { succeed_with_message /Success/ }
+        it "should not contain invalid lines from file" do
+          run_output.should_not match(/ZEE/)
+          run_output.should_not match(/LOL/)
+          run_output.should_not match(/MUST NOT BE INCLUDED/)
+        end
     end
 
     context 'when run with --noprompt and without --confirm' do
@@ -223,26 +195,58 @@ describe RHC::Commands::Env do
 
   describe 'list env' do
     context 'when list with default format' do
+      before(:each) do
+        @rest_app.set_environment_variables({'FOO' => '123', 'BAR' => '456'})
+      end
       let(:arguments) { ['env', 'list', '--app', 'mock_app_0'] }
-      #it { succeed_with_message /FOO=123/ }
-      #it { succeed_with_message /BAR=456/ }
-      it "should exit okay" do
+      it { succeed_with_message /FOO=123/ }
+      it { succeed_with_message /BAR=456/ }
+      it "should contain the environment variables" do
+        @rest_app.environment_variables.length.should == 2
+      end
+    end
+
+    context 'when list with default format and empty env vars' do
+      let(:arguments) { ['env', 'list', '--app', 'mock_app_0'] }
+      it "should exit with no message" do
         expect{ run }.to exit_with_code(0)
       end
     end
 
     context 'when list with export format' do
+      before(:each) do
+        @rest_app.set_environment_variables({'FOO' => '123', 'BAR' => '456'})
+      end
       let(:arguments) { ['env', 'list', '--app', 'mock_app_0', '--export'] }
-      #it { succeed_with_message /FOO="123"/ }
-      #it { succeed_with_message /BAR="456"/ }
-      it "should exit okay" do
+      it { succeed_with_message /FOO="123"/ }
+      it { succeed_with_message /BAR="456"/ }
+      it "should contain the environment variables" do
+        @rest_app.environment_variables.length.should == 2
+      end
+    end
+
+    context 'when list with export format and empty env vars' do
+      let(:arguments) { ['env', 'list', '--app', 'mock_app_0', '--export'] }
+      it "should exit with no message" do
         expect{ run }.to exit_with_code(0)
       end
     end
 
     context 'when list with table format' do
+      before(:each) do
+        @rest_app.set_environment_variables({'FOO' => '123', 'BAR' => '456'})
+      end
       let(:arguments) { ['env', 'list', '--app', 'mock_app_0', '--table'] }
-      it "should exit okay" do
+      it { succeed_with_message /Name/ }
+      it { succeed_with_message /Value/ }
+      it "should contain the right number of env vars" do
+        @rest_app.environment_variables.length.should == 2
+      end
+    end
+
+    context 'when list with table format and empty env vars' do
+      let(:arguments) { ['env', 'list', '--app', 'mock_app_0', '--table'] }
+      it "should exit with no message" do
         expect{ run }.to exit_with_code(0)
       end
     end
@@ -250,38 +254,111 @@ describe RHC::Commands::Env do
 
   describe 'show env' do
     context 'when show with default format' do
+      before(:each) do
+        @rest_app.set_environment_variables({'FOO' => '123', 'BAR' => '456'})
+      end
+      let(:arguments) { ['env', 'show', 'FOO', '--app', 'mock_app_0'] }
+      it { succeed_with_message /FOO=123/ }
+      it "should not contain env vars not specified to show" do
+        run_output.should_not match(/BAR=456/)
+      end
+      it "should contain the right number of env vars" do
+        @rest_app.environment_variables.length.should == 2
+      end
+    end
+
+    context 'when show with default format and not found env var' do
       let(:arguments) { ['env', 'show', 'FOO', '--app', 'mock_app_0'] }
       it "should raise env var not found exception" do
-        expect { run }.to raise_error RHC::EnvironmentVariableNotFoundException
+        expect{ run }.to exit_with_code(157)
+        run_output.should match(/Environment variable\(s\) FOO can't be found in application mock_app_0/)
       end
-      #it { succeed_with_message /FOO=123/ }
+    end
+
+    context 'when show with default format and not found env var' do
+      before(:each) do
+        @rest_app.set_environment_variables({'FOO' => '123', 'BAR' => '456'})
+      end
+      let(:arguments) { ['env', 'show', 'ZEE', '--app', 'mock_app_0'] }
+      it "should contain the right number of env vars" do
+        @rest_app.environment_variables.length.should == 2
+      end
+      it "should not contain env vars not specified to show" do
+        run_output.should_not match(/FOO=123/)
+        run_output.should_not match(/BAR=456/)
+      end
+      it "should raise env var not found exception" do
+        expect{ run }.to exit_with_code(157)
+        run_output.should match(/Environment variable\(s\) ZEE can't be found in application mock_app_0/)
+      end
     end
 
     context 'when show with export format' do
-      let(:arguments) { ['env', 'show', 'FOO', '--app', 'mock_app_0', '--export'] }
-      it "should raise env var not found exception" do
-        expect { run }.to raise_error RHC::EnvironmentVariableNotFoundException
+      before(:each) do
+        @rest_app.set_environment_variables({'FOO' => '123', 'BAR' => '456'})
       end
-      #it { succeed_with_message /FOO="123"/ }
+      let(:arguments) { ['env', 'show', 'FOO', '--app', 'mock_app_0', '--export'] }
+      it { succeed_with_message /FOO="123"/ }
+      it "should not contain env vars not specified to show" do
+        run_output.should_not match(/BAR="456"/)
+      end
+      it "should contain the right number of env vars" do
+        @rest_app.environment_variables.length.should == 2
+      end
+    end
+
+    context 'when show with export format and not found env var' do
+      before(:each) do
+        @rest_app.set_environment_variables({'FOO' => '123', 'BAR' => '456'})
+      end
+      let(:arguments) { ['env', 'show', 'ZEE', '--app', 'mock_app_0', '--export'] }
+      it "should contain the right number of env vars" do
+        @rest_app.environment_variables.length.should == 2
+      end
+      it "should not contain env vars not specified to show" do
+        run_output.should_not match(/FOO=123/)
+        run_output.should_not match(/BAR=456/)
+      end
+      it "should raise env var not found exception" do
+        expect{ run }.to exit_with_code(157)
+        run_output.should match(/Environment variable\(s\) ZEE can't be found in application mock_app_0/)
+      end
     end
 
     context 'when show with table format' do
-      let(:arguments) { ['env', 'show', 'FOO', '--app', 'mock_app_0', '--table'] }
-      it "should raise env var not found exception" do
-        expect { run }.to raise_error RHC::EnvironmentVariableNotFoundException
+      before(:each) do
+        @rest_app.set_environment_variables({'FOO' => '123', 'BAR' => '456'})
       end
-      #it "should exit okay" do
-      #  expect{ run }.to exit_with_code(0)
-      #end
+      let(:arguments) { ['env', 'show', 'FOO', '--app', 'mock_app_0', '--table'] }
+      it { succeed_with_message /Name/ }
+      it { succeed_with_message /Value/ }
+      it { succeed_with_message /FOO/ }
+      it "should not contain env vars not specified to show" do
+        run_output.should_not match(/BAR/)
+      end
+      it "should contain the right number of env vars" do
+        @rest_app.environment_variables.length.should == 2
+      end
     end
 
-    context 'when show with not set env var' do
-      let(:arguments) { ['env', 'show', 'FOO', '--app', 'mock_app_0'] }
-      it "should raise env var not found exception" do
-        expect { run }.to raise_error RHC::EnvironmentVariableNotFoundException
+    context 'when show with table format and not found env var' do
+      before(:each) do
+        @rest_app.set_environment_variables({'FOO' => '123', 'BAR' => '456'})
       end
-      #it { succeed_with_message /FOO=123/ }
+      let(:arguments) { ['env', 'show', 'ZEE', '--app', 'mock_app_0', '--table'] }
+      it "should contain the right number of env vars" do
+        @rest_app.environment_variables.length.should == 2
+      end
+      it "should not contain env vars not specified to show" do
+        run_output.should_not match(/FOO/)
+        run_output.should_not match(/BAR/)
+      end
+      it "should raise env var not found exception" do
+        expect{ run }.to exit_with_code(157)
+        run_output.should match(/Environment variable\(s\) ZEE can't be found in application mock_app_0/)
+      end
     end
+
   end
 
   describe 'create app with env vars' do

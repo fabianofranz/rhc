@@ -141,13 +141,13 @@ module RHC
     def display_env_var_list(env_vars_hash, format=nil)
       case format
       when :table
-        say table(env_vars_hash.to_a, :header => ['Name', 'Value']) if env_vars_hash.present?
+        say table(env_vars_hash.sort.to_a, :header => ['Name', 'Value']) if env_vars_hash.present?
       when :export
-        env_vars_hash.each do |key, value|
+        env_vars_hash.sort.each do |key, value|
           say "#{key}=\"#{value}\""
         end
       else
-        env_vars_hash.each do |key, value|
+        env_vars_hash.sort.each do |key, value|
           default_display_env_var(key, value)
         end
       end
