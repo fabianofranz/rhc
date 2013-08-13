@@ -708,4 +708,19 @@ describe RHC::Commands::App do
       expect{ subject.send(:create_app, 'name', 'jenkins-1.4', domain) }.to raise_error(RHC::Rest::ValidationException)
     end
   end
+
+  describe 'create app with env vars' do
+    before{ rest_client.add_domain("mockdomain") }
+
+    [['app', 'create', 'app1', 'mock_standalone_cart-1', '-e', 'FOO=BAR', '--noprompt', '--timeout', '10', '--config', 'test.conf', '-l', 'test@test.foo', '-p',  'password'],
+     ['app', 'create', 'app1', 'mock_standalone_cart-1', '--env', 'FOO=BAR', '--noprompt', '--timeout', '10', '--config', 'test.conf', '-l', 'test@test.foo', '-p',  'password']
+    ].each_with_index do |args, i|
+      context "when run with single env var #{i}" do
+        let(:arguments) { args }
+        it { expect { run }.to exit_with_code(0) }
+        it { run_output.should match("Success") }
+        it { run_output.should match("Cartridges: mock_standalone_cart-1\n") }
+      end
+    end
+  end
 end

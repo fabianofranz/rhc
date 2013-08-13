@@ -1,5 +1,4 @@
 require 'uri'
-require 'json'
 
 module RHC
   module Rest
@@ -125,7 +124,7 @@ module RHC
       
       def environment_variables
         #TODO fix, handling api with string format instead of json
-        @environment_variables ||= attributes['environment_variables'].present? ? JSON.parse(attributes['environment_variables'].chomp('"').reverse.chomp('"').reverse) : {}
+        @environment_variables ||= attributes['environment_variables'].present? ? RHC::Json.decode(attributes['environment_variables'].chomp('"').reverse.chomp('"').reverse) : {}
       end
       
       def find_environment_variable(env_var_name)

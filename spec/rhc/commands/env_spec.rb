@@ -14,10 +14,7 @@ describe RHC::Commands::Env do
     exit_with_code_and_message(0, message)
   end
 
-  let(:client_links)   { mock_response_links(mock_client_links) }
-  let(:domain_0_links) { mock_response_links(mock_domain_links('mock_domain_0')) }
-  let(:app_0_links)    { mock_response_links(mock_app_links('mock_domain_0', 'mock_app_0')) }
-  let!(:rest_client){ MockRestClient.new }
+  let!(:rest_client) { MockRestClient.new }
 
   before(:each) do
     user_config
@@ -153,6 +150,18 @@ describe RHC::Commands::Env do
         expect{ run }.to exit_with_code(1)
       end
       it("should output confirmation") { run_output.should match("This action requires the --confirm option") }
+    end
+
+    context 'when run against an unsupported server' do
+      before { 
+        rest_client.stub(:api_version_negotiated).and_return(1.5)
+        @rest_app.links.select! { |key, value| !['SET_ENVIRONMENT_VARIABLES', 'UNSET_ENVIRONMENT_VARIABLES'].include?(key) }
+      }
+      let(:arguments) { ['env', 'set', 'TEST_ENV_VAR=1', '--app', 'mock_app_0', '--noprompt', '--confirm' ] }
+      it "should raise env var not found exception" do
+        expect{ run }.to exit_with_code(158)
+        run_output.should match(/Server does not support environment variables/)
+      end
     end
   end
 
@@ -362,6 +371,9 @@ describe RHC::Commands::Env do
   end
 
   describe 'create app with env vars' do
+    context 'when create with single env var' do
+      let(:arguments) { ['create-app', 'show', 'FOO', '--app', 'mock_app_0', '--table'] }
+    end
   end
 
   describe 'add cartridge with env vars' do

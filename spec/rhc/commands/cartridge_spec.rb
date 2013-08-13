@@ -550,4 +550,23 @@ describe RHC::Commands::Cartridge do
 
     end
   end
+
+  describe 'cartridge add with env vars' do
+    let!(:rest_client){ MockRestClient.new }
+
+    [['app', 'cartridge', 'add', 'unique_mock_cart', '-e', 'FOO=BAR', '--app', 'app1', '--noprompt', '--config', 'test.conf', '-l', 'test@test.foo', '-p',  'password'],
+     ['app', 'cartridge', 'add', 'unique_mock_cart', '--env', 'FOO=BAR', '--app', 'app1', '--noprompt', '--config', 'test.conf', '-l', 'test@test.foo', '-p',  'password']
+    ].each_with_index do |args, i|
+      context "when invoked through an alias #{i}" do
+        let(:arguments) { args }
+        before(:each) do
+          domain = rest_client.add_domain("mock_domain")
+          app = domain.add_application("app1", "mock_type")
+        end
+        it {
+          succeed_with_message
+        }
+      end
+    end
+  end
 end
