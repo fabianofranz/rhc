@@ -91,7 +91,14 @@ module RHC::Commands
 
       success "done"
 
+      if cart.environment_variables.present?
+        rest_cartridge.environment_variables = cart.environment_variables
+      end
+
       paragraph{ display_cart(rest_cartridge) }
+      paragraph{
+        say "Use 'rhc env --help' to manage environment variable(s) on this cartridge and application."
+      }
       paragraph{ rest_cartridge.messages.each { |msg| success msg } }
 
       0

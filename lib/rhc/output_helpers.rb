@@ -84,7 +84,8 @@ module RHC
         get_properties(cart, *properties).
           concat([[:downloaded_cartridge_url, cart.url]]).
           concat([[cart.scalable? ? :scaling : :gears, format_cart_gears(cart)]]).
-          concat(cart.properties.map{ |p| ["#{table_heading(p['name'])}:", p['value']] }.sort{ |a,b| a[0] <=> b[0] }),
+          concat(cart.properties.map{ |p| ["#{table_heading(p['name'])}:", p['value']] }.sort{ |a,b| a[0] <=> b[0] }).
+          concat(cart.environment_variables.present? ? [[:environment_variables, cart.environment_variables.map{|k,v| k + '=' + v}.join(', ')]] : []),
         :delete => true
 
       say format_usage_message(cart) if cart.usage_rate?
