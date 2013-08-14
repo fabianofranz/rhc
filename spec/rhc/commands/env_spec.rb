@@ -153,7 +153,7 @@ describe RHC::Commands::Env do
     end
 
     context 'when run against an unsupported server' do
-      before { 
+      before {
         rest_client.stub(:api_version_negotiated).and_return(1.5)
         @rest_app.links.delete 'SET_ENVIRONMENT_VARIABLES'
         @rest_app.links.delete 'UNSET_ENVIRONMENT_VARIABLES'
@@ -167,7 +167,7 @@ describe RHC::Commands::Env do
   end
 
   describe 'unset env' do
-    
+
     [['env', 'unset', 'TEST_ENV_VAR', '--app', 'mock_app_0', '--noprompt', '--confirm'],
      ['unset-env', 'TEST_ENV_VAR', '--app', 'mock_app_0', '--noprompt', '--confirm'],
      ['env', 'unset', '-e', 'TEST_ENV_VAR', '--app', 'mock_app_0', '--noprompt', '--confirm' ],
@@ -223,11 +223,11 @@ describe RHC::Commands::Env do
       end
     end
 
-    context 'when list with export format' do
+    context 'when list with quotes format' do
       before(:each) do
         @rest_app.set_environment_variables({'FOO' => '123', 'BAR' => '456'})
       end
-      let(:arguments) { ['env', 'list', '--app', 'mock_app_0', '--export'] }
+      let(:arguments) { ['env', 'list', '--app', 'mock_app_0', '--quotes'] }
       it { succeed_with_message /FOO="123"/ }
       it { succeed_with_message /BAR="456"/ }
       it "should contain the environment variables" do
@@ -235,8 +235,8 @@ describe RHC::Commands::Env do
       end
     end
 
-    context 'when list with export format and empty env vars' do
-      let(:arguments) { ['env', 'list', '--app', 'mock_app_0', '--export'] }
+    context 'when list with quotes format and empty env vars' do
+      let(:arguments) { ['env', 'list', '--app', 'mock_app_0', '--quotes'] }
       it "should exit with no message" do
         expect{ run }.to exit_with_code(0)
       end
@@ -303,11 +303,11 @@ describe RHC::Commands::Env do
       end
     end
 
-    context 'when show with export format' do
+    context 'when show with quotes format' do
       before(:each) do
         @rest_app.set_environment_variables({'FOO' => '123', 'BAR' => '456'})
       end
-      let(:arguments) { ['env', 'show', 'FOO', '--app', 'mock_app_0', '--export'] }
+      let(:arguments) { ['env', 'show', 'FOO', '--app', 'mock_app_0', '--quotes'] }
       it { succeed_with_message /FOO="123"/ }
       it "should not contain env vars not specified to show" do
         run_output.should_not match(/BAR="456"/)
@@ -317,11 +317,11 @@ describe RHC::Commands::Env do
       end
     end
 
-    context 'when show with export format and not found env var' do
+    context 'when show with quotes format and not found env var' do
       before(:each) do
         @rest_app.set_environment_variables({'FOO' => '123', 'BAR' => '456'})
       end
-      let(:arguments) { ['env', 'show', 'ZEE', '--app', 'mock_app_0', '--export'] }
+      let(:arguments) { ['env', 'show', 'ZEE', '--app', 'mock_app_0', '--quotes'] }
       it "should contain the right number of env vars" do
         @rest_app.environment_variables.length.should == 2
       end

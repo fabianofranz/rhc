@@ -6,9 +6,9 @@ module RHC::Commands
     syntax "<action>"
     description <<-DESC
       Manages the environment variables for a given application. To
-      see a list of all environment variables use the command 
-      'rhc env list <application>'. Note that some predefined 
-      cartridge-level environment variables can also be overriden, 
+      see a list of all environment variables use the command
+      'rhc env list <application>'. Note that some predefined
+      cartridge-level environment variables can also be overriden,
       but most variables provided by gears are read-only.
 
       DESC
@@ -17,8 +17,8 @@ module RHC::Commands
 
     summary "Set one or more environment variable(s) to your application"
     description <<-DESC
-      Set one or more environment variable(s) to your application. 
-      Operands of the form 'VARIABLE=VALUE' set the environment 
+      Set one or more environment variable(s) to your application.
+      Operands of the form 'VARIABLE=VALUE' set the environment
       variable VARIABLE to value VALUE. VALUE may be empty, in that
       case 'VARIABLE='. Setting a variable to an empty value is
       different from unsetting it.
@@ -55,7 +55,7 @@ module RHC::Commands
 
     summary "Remove one or more environment variable(s) currently set to your application"
     description <<-DESC
-      Remove one or more environment variable(s) currently set to your 
+      Remove one or more environment variable(s) currently set to your
       application. Setting a variable to an empty value is
       different from unsetting it. When unsetting a default cartridge-
       level variable previously overriden, the variable will be set
@@ -90,23 +90,23 @@ module RHC::Commands
 
     summary "List all environment variables set on the application"
     description <<-DESC
-      List all environment variables set on the application. 
-      Gear-level variables overriden by the 'rhc env set' command 
+      List all environment variables set on the application.
+      Gear-level variables overriden by the 'rhc env set' command
       will also be listed.
 
       DESC
     syntax "<app> [--namespace NAME]"
     argument :app, "Application name (required)", ["-a", "--app name"], :context => :app_context, :required => true
     option ["-n", "--namespace NAME"], "Namespace of your application", :context => :namespace_context, :required => true
-    option ["--table"], "Format as table"
-    option ["--export"], "Format as the 'export' command"
+    option ["--table"], "Format output as table"
+    option ["--quotes"], "Format output with double quotes for values"
     def list(app)
       rest_app = rest_client.find_application(options.namespace, app, :include => :environment_variables)
       rest_env_vars = rest_app.environment_variables
 
       pager
 
-      display_env_var_list(rest_env_vars, options.table ? :table : options.export ? :export : :env)
+      display_env_var_list(rest_env_vars, options.table ? :table : options.quotes ? :quotes : :env)
 
       0
     end
@@ -116,15 +116,15 @@ module RHC::Commands
     argument :env, "Name of the environment variable(s), e.g. VARIABLE", ["-e", "--env VARIABLE"], :optional => false, :arg_type => :list
     option ["-a", "--app NAME"], "Application name (required)", :context => :app_context, :required => true
     option ["-n", "--namespace NAME"], "Namespace of your application", :context => :namespace_context, :required => true
-    option ["--table"], "Format as table"
-    option ["--export"], "Format as the 'export' command"
+    option ["--table"], "Format output as table"
+    option ["--quotes"], "Format output with double quotes for values"
     def show(env)
       rest_app = rest_client.find_application(options.namespace, options.app, :include => :environment_variables)
       rest_env_vars = rest_app.find_environment_variables(env)
 
       pager
 
-      display_env_var_list(rest_env_vars, options.table ? :table : options.export ? :export : :env)
+      display_env_var_list(rest_env_vars, options.table ? :table : options.quotes ? :quotes : :env)
 
       0
     end

@@ -25,8 +25,8 @@ module RHC
       def add_cartridge(cart, options={})
         debug "Adding cartridge #{name}"
         clear_attribute :cartridges
-        cart = 
-          if cart.is_a? String 
+        cart =
+          if cart.is_a? String
             {:name => cart}
           elsif cart.respond_to? :[]
             cart
@@ -121,12 +121,12 @@ module RHC
         debug "Running thread dump for #{name}"
         rest_method "THREAD_DUMP", :event => "thread-dump"
       end
-      
+
       def environment_variables
         #TODO fix, handling api with string format instead of json
         @environment_variables ||= attributes['environment_variables'].present? ? RHC::Json.decode(attributes['environment_variables'].chomp('"').reverse.chomp('"').reverse) : {}
       end
-      
+
       def find_environment_variable(env_var_name)
         find_environment_variables(env_var_name).first
       end
@@ -149,9 +149,9 @@ module RHC
           raise RHC::EnvironmentVariablesNotSupportedException.new
         end
       end
-      
+
       def unset_environment_variables(env_vars=[])
-        debug "Removing environment variable(s) #{environment_variables.inspect} for #{name}"        
+        debug "Removing environment variable(s) #{environment_variables.inspect} for #{name}"
         if (supports? "UNSET_ENVIRONMENT_VARIABLES")
           rest_method "UNSET_ENVIRONMENT_VARIABLES", :event => 'unset-environment-variables', :environment_variables => env_vars
           env_vars.each { |key| environment_variables.delete key }
@@ -198,7 +198,7 @@ module RHC
         aliases.each { |a| return a if a.is_a?(String) || a.id == name.downcase }
         raise RHC::AliasNotFoundException.new("Alias #{name} can't be found in application #{@name}.")
       end
-      
+
       #Find Cartridge by name
       def find_cartridge(sought, options={})
         debug "Finding cartridge #{sought} in app #{name}"

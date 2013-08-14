@@ -86,7 +86,7 @@ module RHC
           concat([[cart.scalable? ? :scaling : :gears, format_cart_gears(cart)]]).
           concat(cart.properties.map{ |p| ["#{table_heading(p['name'])}:", p['value']] }.sort{ |a,b| a[0] <=> b[0] }),
         :delete => true
-      
+
       say format_usage_message(cart) if cart.usage_rate?
     end
 
@@ -142,7 +142,7 @@ module RHC
       case format
       when :table
         say table(env_vars_hash.sort.to_a, :header => ['Name', 'Value']) if env_vars_hash.present?
-      when :export
+      when :quotes
         env_vars_hash.sort.each do |key, value|
           say "#{key}=\"#{value}\""
         end
