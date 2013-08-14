@@ -2,14 +2,16 @@ require 'rhc/commands/base'
 
 module RHC::Commands
   class Env < Base
-    summary "Manage your application's environment variables"
+    summary "Manages user-defined environment variables set on a given application"
     syntax "<action>"
     description <<-DESC
-      Manages the environment variables for a given application. To
-      see a list of all environment variables use the command
-      'rhc env list <application>'. Note that some predefined
+      Manages the user-defined environment variables set on a given
+      application. To see a list of all environment variables use the command
+      'rhc list-env <application>'. Note that some predefined
       cartridge-level environment variables can also be overriden,
       but most variables provided by gears are read-only.
+
+      Type 'rhc set-env --help' for more details.
 
       DESC
     default_action :help
@@ -19,9 +21,17 @@ module RHC::Commands
     description <<-DESC
       Set one or more environment variable(s) to your application.
       Operands of the form 'VARIABLE=VALUE' set the environment
-      variable VARIABLE to value VALUE. VALUE may be empty, in that
-      case 'VARIABLE='. Setting a variable to an empty value is
-      different from unsetting it.
+      variable VARIABLE to value VALUE. Example:
+
+      rhc set-env VARIABLE1=VALUE1 VARIABLE2=VALUE2 -a myapp
+
+      Environment variables can also be set from a file containing one
+      or more VARIABLE=VALUE pairs (one per line). Example:
+
+      rhc set-env /path/to/file -a myapp
+
+      VALUE may be empty, in that case 'VARIABLE='. Setting a
+      variable to an empty value is different from unsetting it.
 
       Some default cartridge-level variables can be overriden, but
       variables provided by gears are read-only.
@@ -90,8 +100,8 @@ module RHC::Commands
 
     summary "List all environment variables set on the application"
     description <<-DESC
-      List all environment variables set on the application.
-      Gear-level variables overriden by the 'rhc env set' command
+      List all user-defined environment variables set on the application.
+      Gear-level variables overriden by the 'rhc set-env' command
       will also be listed.
 
       DESC

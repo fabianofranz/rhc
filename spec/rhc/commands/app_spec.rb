@@ -177,6 +177,7 @@ describe RHC::Commands::App do
       it { expect { run }.to exit_with_code(0) }
       it { run_output.should match("Success") }
       it { run_output.should match("Cartridges: mock_standalone_cart-1\n") }
+      it { run_output.should_not match(/Environment Variables:/) }
     end
 
     context 'when Hosts resolver raises an Exception' do
@@ -196,6 +197,7 @@ describe RHC::Commands::App do
       it { expect { run }.to exit_with_code(0) }
       it { run_output.should match("Success") }
       it { run_output.should match("Cartridges: mock_standalone_cart-1, mock_cart-1\n") }
+      it { run_output.should_not match(/Environment Variables:/) }
       after{ rest_client.domains.first.applications.first.cartridges.find{ |c| c.name == 'mock_cart-1' }.should be_true }
     end
 
@@ -204,6 +206,7 @@ describe RHC::Commands::App do
       it { expect { run }.to exit_with_code(0) }
       it { run_output.should match("Success") }
       it { run_output.should match("Cartridges: http://foo.com, mock_cart-1\n") }
+      it { run_output.should_not match(/Environment Variables:/) }
       after{ rest_client.domains.first.applications.first.cartridges.find{ |c| c.url == 'http://foo.com' }.should be_true }
     end
 
@@ -723,5 +726,6 @@ describe RHC::Commands::App do
         it { run_output.should match(/Environment Variables:\s+FOO=BAR\n/) }
       end
     end
+
   end
 end

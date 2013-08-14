@@ -52,7 +52,7 @@ module RHC::Commands
     option ["-g", "--gear-size SIZE"], "Gear size controls how much memory and CPU your cartridges can use."
     option ["-s", "--scaling"], "Enable scaling for the web cartridge."
     option ["-r", "--repo DIR"], "Path to the Git repository (defaults to ./$app_name)"
-    option ["-e", "--env VARIABLE=VALUE"], "Environment variable(s) to be set on this app"
+    option ["-e", "--env VARIABLE=VALUE"], "Environment variable(s) to be set on this app, or path to a file containing environment variables"
     option ["--from-code URL"], "URL to a Git repository that will become the initial contents of the application"
     option ["--[no-]git"], "Skip creating the local Git repository."
     option ["--nogit"], "DEPRECATED: Skip creating the local Git repository.", :deprecated => {:key => :git, :value => false}
@@ -91,7 +91,7 @@ module RHC::Commands
               (["Source Code:", options.from_code] if options.from_code),
                ["Gear Size:", options.gear_size || "default"],
                ["Scaling:", options.scaling ? "yes" : "no"],
-              (["Environment Variables:", environment_variables.map{|k,v| "#{k}=#{v}"}.join(', ')] if environment_variables),
+              (["Environment Variables:", environment_variables.map{|k,v| "#{k}=#{v}"}.join(', ')] if environment_variables.present?),
               ].compact
              ).each { |s| say "  #{s}" }
       end
@@ -439,7 +439,7 @@ module RHC::Commands
         app_options[:scale] = scale if scale
         app_options[:initial_git_url] = from_code if from_code
         app_options[:debug] = true if @debug
-        app_options[:environment_variables] = environment_variables if environment_variables
+        app_options[:environment_variables] = environment_variables if environment_variables.present?
         debug "Creating application '#{name}' with these options - #{app_options.inspect}"
         rest_app = rest_domain.add_application(name, app_options)
         debug "'#{rest_app.name}' created"
