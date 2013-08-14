@@ -582,7 +582,7 @@ describe RHC::Commands::Cartridge do
           app = domain.add_application("app1", "mock_type")
         end
         it {
-          succeed_with_message(/Environment Variables:\s+FOO=123, BAR=456, MY_OPENSHIFT_ENV_VAR=mongodb:\/\/user:pass@host:port\/, MY_EMPTY_ENV_VAR=\n/)
+          succeed_with_message(/Environment Variables:\s+BAR=456, FOO=123, MY_EMPTY_ENV_VAR=, MY_OPENSHIFT_ENV_VAR=mongodb:\/\/user:pass@host:port\/\n/)
         }
       end
     end

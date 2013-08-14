@@ -182,7 +182,7 @@ module RHC::Commands
                 ['SSH to:', rest_app.ssh_string],
                 ['Git remote:', rest_app.git_url],
                 (['Cloned to:', repo_dir] if repo_dir),
-                (['Environment variables:', environment_variables.map{|k,v| "#{k}=#{v}"}.join(', ')] if environment_variables.present?)
+                (['Environment variables:', environment_variables.map{|k,v| "#{k}=#{v}"}.sort.join(', ')] if environment_variables.present?)
               ].compact
           end
         end
