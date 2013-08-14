@@ -31,7 +31,12 @@ module RHC
           elsif cart.respond_to? :[]
             cart
           else
-            cart.url ? {:url => cart.url} : {:name => cart.name}
+            c = cart.url ? {:url => cart.url} : {:name => cart.name}
+            cart =
+              cart.respond_to?(:environment_variables) &&
+              cart.environment_variables.present? ?
+                c.merge({:environment_variables => cart.environment_variables}) :
+                c
           end
 
         if cart.respond_to?(:[]) and cart[:url] and !has_param?('ADD_CARTRIDGE', 'url')

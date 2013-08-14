@@ -8,16 +8,16 @@ if $target_os == 'fedora-18'
     "cron"        => { type: "cron-1.4", name: "Cron 1.4" },
     "haproxy"     => { type: "haproxy-1.4", name: "" }
   }
-#elsif $target_os == 'fedora-19'
-#  CARTRIDGE_MAP = {
-#      "php"         => { type: "php-5.5", name: "PHP 5.5" },
-#      "mysql"       => { type: "mariadb-5.5", name: "MariaDB 5.5" },
-#      "phpmyadmin"  => { type: "phpmyadmin-3.5", name: "phpMyAdmin 3.5" },
-#      "mongodb"     => { type: "mongodb-2.2", name: "MongoDB NoSQL Database 2.2" },
-#      "postgresql"  => { type: "postgresql-9.2", name: "PostgreSQL Database 9.2" },
-#      "cron"        => { type: "cron-1.4", name: "Cron 1.4" },
-#      "haproxy"     => { type: "haproxy-1.4", name: "" }
-#  }
+elsif $target_os == 'fedora-19'
+  CARTRIDGE_MAP = {
+      "php"         => { type: "php-5.5", name: "PHP 5.5" },
+      "mysql"       => { type: "mariadb-5.5", name: "MariaDB 5.5" },
+      "phpmyadmin"  => { type: "phpmyadmin-3.5", name: "phpMyAdmin 3.5" },
+      "mongodb"     => { type: "mongodb-2.2", name: "MongoDB NoSQL Database 2.2" },
+      "postgresql"  => { type: "postgresql-9.2", name: "PostgreSQL Database 9.2" },
+      "cron"        => { type: "cron-1.4", name: "Cron 1.4" },
+      "haproxy"     => { type: "haproxy-1.4", name: "" }
+  }
 else
   CARTRIDGE_MAP = {
     "php"         => { type: "php-5.3", name: "PHP 5.3" },

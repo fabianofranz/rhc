@@ -17,10 +17,10 @@ module RHC::Commands
       (like Jenkins) or provide environment variables.
 
       Use the 'cartridges' command to see a list of all available cartridges.
-      Add a new cartridge to your application with 'add-cartridge'. OpenShift 
-      also supports downloading cartridges - pass a URL in place of the cartridge 
-      name and we'll download and install that cartridge into your app.  Keep 
-      in mind that these cartridges receive no security updates.  Note that 
+      Add a new cartridge to your application with 'add-cartridge'. OpenShift
+      also supports downloading cartridges - pass a URL in place of the cartridge
+      name and we'll download and install that cartridge into your app.  Keep
+      in mind that these cartridges receive no security updates.  Note that
       not all OpenShift servers allow downloaded cartridges.
 
       For scalable applications, use the 'cartridge-scale' command on the web
@@ -76,7 +76,7 @@ module RHC::Commands
     option ["-e", "--env VARIABLE=VALUE"], "Environment variable(s) to be set on this cartridge"
     argument :cart_type, "The type of the cartridge you are adding (run 'rhc cartridge list' to obtain a list of available cartridges)", ["-c", "--cartridge cart_type"]
     alias_action :"app cartridge add", :root_command => true, :deprecated => true
-    def add(cart_type)      
+    def add(cart_type)
       cart = check_cartridges(cart_type, :from => not_standalone_cartridges).first
 
       say "Adding #{cart.short_name} to application '#{options.app}' ... "
@@ -85,10 +85,7 @@ module RHC::Commands
 
       rest_app = rest_client.find_application(options.namespace, options.app, :include => :cartridges)
 
-      if options.env
-        env_vars = collect_env_vars(options.env)
-        # TODO
-      end
+      cart.environment_variables = collect_env_vars(options.env) if options.env
 
       rest_cartridge = rest_app.add_cartridge(cart)
 
@@ -96,7 +93,7 @@ module RHC::Commands
 
       paragraph{ display_cart(rest_cartridge) }
       paragraph{ rest_cartridge.messages.each { |msg| success msg } }
-      
+
       0
     end
 
@@ -195,10 +192,10 @@ module RHC::Commands
 
     summary "Set the scale range for a cartridge"
     description <<-DESC
-      Each cartridge capable of scaling may have a minimum and a maximum set, although within that range 
+      Each cartridge capable of scaling may have a minimum and a maximum set, although within that range
       each type of cartridge may make decisions to autoscale.  Web cartridges will scale based on incoming
       request traffic - see https://www.openshift.com/developers/scaling for more information. Non web
-      cartridges such as databases may require specific increments of scaling (1, 3, 5) in order to 
+      cartridges such as databases may require specific increments of scaling (1, 3, 5) in order to
       properly function.  Please consult the cartridge documentation for more on specifics of scaling.
 
       Set both values the same to guarantee a scale value.  You may pecify both values with the argument

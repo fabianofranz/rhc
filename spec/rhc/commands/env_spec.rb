@@ -247,8 +247,9 @@ describe RHC::Commands::Env do
         @rest_app.set_environment_variables({'FOO' => '123', 'BAR' => '456'})
       end
       let(:arguments) { ['env', 'list', '--app', 'mock_app_0', '--table'] }
-      it { succeed_with_message /Name/ }
-      it { succeed_with_message /Value/ }
+      it { succeed_with_message /Name\s+Value/ }
+      it { succeed_with_message /FOO\s+123/ }
+      it { succeed_with_message /BAR\s+456/ }
       it "should contain the right number of env vars" do
         @rest_app.environment_variables.length.should == 2
       end
@@ -340,9 +341,8 @@ describe RHC::Commands::Env do
         @rest_app.set_environment_variables({'FOO' => '123', 'BAR' => '456'})
       end
       let(:arguments) { ['env', 'show', 'FOO', '--app', 'mock_app_0', '--table'] }
-      it { succeed_with_message /Name/ }
-      it { succeed_with_message /Value/ }
-      it { succeed_with_message /FOO/ }
+      it { succeed_with_message /Name\s+Value/ }
+      it { succeed_with_message /FOO\s+123/ }
       it "should not contain env vars not specified to show" do
         run_output.should_not match(/BAR/)
       end
@@ -369,15 +369,6 @@ describe RHC::Commands::Env do
       end
     end
 
-  end
-
-  describe 'create app with env vars' do
-    context 'when create with single env var' do
-      let(:arguments) { ['create-app', 'show', 'FOO', '--app', 'mock_app_0', '--table'] }
-    end
-  end
-
-  describe 'add cartridge with env vars' do
   end
 
 end

@@ -267,12 +267,12 @@ describe RHC::Commands::App do
       let(:arguments) { ['app', 'create', 'app1', 'http://foo.com', '--trace', '--noprompt'] }
       it('tells me about custom carts') { run_output.should match("The cartridge 'http://foo.com' will be downloaded") }
       it('lists the cart using the short_name') { run_output.should match(%r(Cartridges:\s+http://foo.com$)) }
-    end    
+    end
     context 'when I pick a custom URL cart and a web cart' do
       let(:arguments) { ['app', 'create', 'app1', 'http://foo.com', 'embcart-1', '--trace', '--noprompt'] }
       it('tells me about custom carts') { run_output.should match("The cartridge 'http://foo.com' will be downloaded") }
       it('lists the carts using the short_name') { run_output.should match(%r(Cartridges:\s+http://foo.com, embcart-1$)) }
-    end    
+    end
   end
 
   describe 'app create enable-jenkins' do
@@ -503,12 +503,12 @@ describe RHC::Commands::App do
       let(:password){ 'password' }
       let(:server){ mock_uri }
       let(:arguments){ ['delete-app', 'foo', '--confirm', '--trace'] }
-      before do 
+      before do
         stub_api
         challenge{ stub_one_domain('test') }
         stub_one_application('test', 'foo')
       end
-      before do 
+      before do
         stub_api_request(:delete, "broker/rest/domains/test/applications/foo").
           to_return({
             :body   => {
@@ -568,7 +568,7 @@ describe RHC::Commands::App do
       it { run_output.should match(/Gears:\s+Located with mock_type/) }
       it { run_output.should match(/Gears:\s+1 small/) }
       it { run_output.should match(%r(From:\s+ https://foo.bar.com)) }
-    end    
+    end
   end
 
   describe 'app show' do
@@ -719,7 +719,8 @@ describe RHC::Commands::App do
         let(:arguments) { args }
         it { expect { run }.to exit_with_code(0) }
         it { run_output.should match("Success") }
-        it { run_output.should match("Cartridges: mock_standalone_cart-1\n") }
+        it { run_output.should match(/Cartridges:\s+mock_standalone_cart-1\n/) }
+        it { run_output.should match(/Environment Variables:\s+FOO=BAR\n/) }
       end
     end
   end

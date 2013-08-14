@@ -649,7 +649,7 @@ module RHC::Rest::Mock
     def initialize(client=nil, carts=['name' => 'fake_geargroup_cart-0.1'], count=1)
       super({}, client)
       @cartridges = carts
-      @gears = count.times.map do |i| 
+      @gears = count.times.map do |i|
         {'state' => 'started', 'id' => "fakegearid#{i}", 'ssh_url' => "ssh://fakegearid#{i}@fakesshurl.com"}
       end
       @gear_profile = 'small'
@@ -736,7 +736,7 @@ module RHC::Rest::Mock
     end
 
     def add_cartridge(cart, embedded=true, environment_variables=nil)
-      name, url = 
+      name, url =
         if cart.is_a? String
           [cart, nil]
         elsif cart.respond_to? :[]
@@ -747,7 +747,7 @@ module RHC::Rest::Mock
 
       type = embedded ? "embedded" : "standalone"
       c = MockRestCartridge.new(client, name, type, self)
-      if url 
+      if url
         c.url = url
         c.name = c.url_basename
       end
@@ -816,7 +816,7 @@ module RHC::Rest::Mock
         raise RHC::EnvironmentVariablesNotSupportedException.new
       end
     end
-    
+
     def unset_environment_variables(env_vars=[])
       if (supports? "UNSET_ENVIRONMENT_VARIABLES")
         env_vars.each { |key| environment_variables.delete key }
