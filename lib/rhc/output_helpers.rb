@@ -85,7 +85,7 @@ module RHC
           concat([[:downloaded_cartridge_url, cart.url]]).
           concat([[cart.scalable? ? :scaling : :gears, format_cart_gears(cart)]]).
           concat(cart.properties.map{ |p| ["#{table_heading(p['name'])}:", p['value']] }.sort{ |a,b| a[0] <=> b[0] }).
-          concat(cart.environment_variables.present? ? [[:environment_variables, cart.environment_variables.map{|k,v| k + '=' + v}.sort.join(', ')]] : []),
+          concat(cart.environment_variables.present? ? [[:environment_variables, cart.environment_variables.map{|item| "#{item[:name]}=#{item[:value]}" }.sort.join(', ')]] : []),
         :delete => true
 
       say format_usage_message(cart) if cart.usage_rate?
@@ -139,17 +139,17 @@ module RHC
       info "#{env_var_name}#{env_var_value.nil? ? '' : '=' + env_var_value}"
     end
 
-    def display_env_var_list(env_vars_hash, format=nil)
+    def display_env_var_list(env_vars, format=nil)
       case format
       when :table
-        say table(env_vars_hash.sort.to_a, :header => ['Name', 'Value']) if env_vars_hash.present?
+        say table(env_vars.collect{ |item| [item.name, item.value] }, :header => ['Name', 'Value']) if env_vars.present?
       when :quotes
-        env_vars_hash.sort.each do |key, value|
-          say "#{key}=\"#{value}\""
+        env_vars.sort.each do |env_var|
+          default_display_env_var(env_var.name, "\"#{env_var.value}\"")
         end
       else
-        env_vars_hash.sort.each do |key, value|
-          default_display_env_var(key, value)
+        env_vars.sort.each do |env_var|
+          default_display_env_var(env_var.name, env_var.value)
         end
       end
     end

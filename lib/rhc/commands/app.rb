@@ -91,7 +91,7 @@ module RHC::Commands
               (["Source Code:", options.from_code] if options.from_code),
                ["Gear Size:", options.gear_size || "default"],
                ["Scaling:", options.scaling ? "yes" : "no"],
-              (["Environment Variables:", environment_variables.map{|k,v| "#{k}=#{v}"}.join(', ')] if environment_variables.present?),
+              (["Environment Variables:", environment_variables.map{|item| "#{item.name}=#{item.value}"}.join(', ')] if environment_variables.present?),
               ].compact
              ).each { |s| say "  #{s}" }
       end
@@ -182,7 +182,7 @@ module RHC::Commands
                 ['SSH to:', rest_app.ssh_string],
                 ['Git remote:', rest_app.git_url],
                 (['Cloned to:', repo_dir] if repo_dir),
-                (['Environment variables:', environment_variables.map{|k,v| "#{k}=#{v}"}.sort.join(', ')] if environment_variables.present?)
+                (['Environment variables:', environment_variables.map{|item| "#{item.name}=#{item.value}"}.sort.join(', ')] if environment_variables.present?)
               ].compact
           end
         end
@@ -440,7 +440,7 @@ module RHC::Commands
         app_options[:scale] = scale if scale
         app_options[:initial_git_url] = from_code if from_code
         app_options[:debug] = true if @debug
-        app_options[:environment_variables] = environment_variables if environment_variables.present?
+        app_options[:environment_variables] = environment_variables.map{ |item| item.to_hash } if environment_variables.present?
         debug "Creating application '#{name}' with these options - #{app_options.inspect}"
         rest_app = rest_domain.add_application(name, app_options)
         debug "'#{rest_app.name}' created"

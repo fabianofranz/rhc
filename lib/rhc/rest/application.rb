@@ -6,8 +6,7 @@ module RHC
       define_attr :domain_id, :name, :creation_time, :uuid,
                   :git_url, :app_url, :gear_profile, :framework,
                   :scalable, :health_check_path, :embedded, :gear_count,
-                  :ssh_url, :building_app, :cartridges, :initial_git_url,
-                  :environment_variables
+                  :ssh_url, :building_app, :cartridges, :initial_git_url
       alias_method :domain_name, :domain_id
 
       # Query helper to say consistent with cartridge
@@ -32,11 +31,10 @@ module RHC
             cart
           else
             c = cart.url ? {:url => cart.url} : {:name => cart.name}
-            cart =
-              cart.respond_to?(:environment_variables) &&
-              cart.environment_variables.present? ?
-                c.merge({:environment_variables => cart.environment_variables}) :
-                c
+            if cart.respond_to?(:environment_variables) && cart.environment_variables.present?
+              c[:environment_variables] = cart.environment_variables
+            end
+            cart = c
           end
 
         if cart.respond_to?(:[]) and cart[:url] and !has_param?('ADD_CARTRIDGE', 'url')
@@ -128,8 +126,8 @@ module RHC
       end
 
       def environment_variables
-        #TODO fix, handling api with string format instead of json
-        @environment_variables ||= attributes['environment_variables'].present? ? RHC::Json.decode(attributes['environment_variables'].chomp('"').reverse.chomp('"').reverse) : {}
+        debug "Getting all environment variables for application #{name}"
+        rest_method "LIST_ENVIRONMENT_VARIABLES"
       end
 
       def find_environment_variable(env_var_name)
@@ -140,26 +138,26 @@ module RHC
         return environment_variables if env_var_names.nil?
         env_var_names = [env_var_names].flatten
         debug "Finding environment variable(s) #{env_var_names.inspect} in app #{@name}"
-        env_vars = environment_variables.select { |key, value| env_var_names.include? key }
+        env_vars = environment_variables.select { |item| env_var_names.include? item.name }
         raise RHC::EnvironmentVariableNotFoundException.new("Environment variable(s) #{env_var_names.join(', ')} can't be found in application #{name}.") if env_vars.empty?
         env_vars
       end
 
-      def set_environment_variables(env_vars={})
-        debug "Adding environment variable(s) #{environment_variables.inspect} for #{name}"
-        if (supports? "SET_ENVIRONMENT_VARIABLES")
-          rest_method "SET_ENVIRONMENT_VARIABLES", :event => 'set-environment-variables', :environment_variables => env_vars
-          environment_variables.merge! env_vars
+      # Expects an array of RHC::Rest::EnvironmentVariable
+      def set_environment_variables(env_vars=[])
+        debug "Adding environment variable(s) #{env_vars.inspect} for #{name}"
+        if (supports? "SET_UNSET_ENVIRONMENT_VARIABLES")
+          rest_method "SET_UNSET_ENVIRONMENT_VARIABLES", :environment_variables => env_vars.map{|item| item.to_hash}
         else
           raise RHC::EnvironmentVariablesNotSupportedException.new
         end
       end
 
+      # Expects an array of env var names like ['FOO', 'BAR']
       def unset_environment_variables(env_vars=[])
-        debug "Removing environment variable(s) #{environment_variables.inspect} for #{name}"
-        if (supports? "UNSET_ENVIRONMENT_VARIABLES")
-          rest_method "UNSET_ENVIRONMENT_VARIABLES", :event => 'unset-environment-variables', :environment_variables => env_vars
-          env_vars.each { |key| environment_variables.delete key }
+        debug "Removing environment variable(s) #{env_vars.inspect} for #{name}"
+        if (supports? "SET_UNSET_ENVIRONMENT_VARIABLES")
+          rest_method "SET_UNSET_ENVIRONMENT_VARIABLES", :environment_variables => env_vars.map{|item| {:name => item}}
         else
           raise RHC::EnvironmentVariablesNotSupportedException.new
         end

@@ -44,15 +44,14 @@ module RHC::Commands
     option ["--confirm"], "Pass to confirm setting the environment variable(s)"
     alias_action :add
     def set(env)
-      rest_app = rest_client.find_application(options.namespace, options.app, :include => :environment_variables
-        )
-
-      env_vars = {}
-      env.each {|e| env_vars.merge! collect_env_vars(e) }
+      rest_app = rest_client.find_application(options.namespace, options.app)
 
       say "Setting environment variable(s) to application '#{rest_app.name}':"
 
-      env_vars.each {|key, value| default_display_env_var(key, value) }
+      env_vars = []
+      env.each {|e| env_vars.concat(collect_env_vars(e)) }
+
+      env_vars.each {|item| default_display_env_var(item.name, item.value) }
 
       confirm_action 'Confirm?'
 
@@ -79,20 +78,17 @@ module RHC::Commands
     option ["--confirm"], "Pass to confirm removing the environment variable"
     alias_action :remove
     def unset(env)
-      rest_app = rest_client.find_application(options.namespace, options.app, :include => :environment_variables)
-
-      env_vars = []
+      rest_app = rest_client.find_application(options.namespace, options.app)
 
       say 'Removing environment variables is a destructive operation that may result in loss of data.'
 
       env.each do |e|
         default_display_env_var(e)
-        env_vars << e
       end
 
       confirm_action "Are you sure you wish to remove the environment variable(s) above from application '#{rest_app.name}'?"
       say 'Wait ... '
-      rest_app.unset_environment_variables(env_vars)
+      rest_app.unset_environment_variables(env)
       success 'Success'
 
       0
@@ -111,7 +107,7 @@ module RHC::Commands
     option ["--table"], "Format output as table"
     option ["--quotes"], "Format output with double quotes for values"
     def list(app)
-      rest_app = rest_client.find_application(options.namespace, app, :include => :environment_variables)
+      rest_app = rest_client.find_application(options.namespace, app)
       rest_env_vars = rest_app.environment_variables
 
       pager
@@ -129,7 +125,7 @@ module RHC::Commands
     option ["--table"], "Format output as table"
     option ["--quotes"], "Format output with double quotes for values"
     def show(env)
-      rest_app = rest_client.find_application(options.namespace, options.app, :include => :environment_variables)
+      rest_app = rest_client.find_application(options.namespace, options.app)
       rest_env_vars = rest_app.find_environment_variables(env)
 
       pager

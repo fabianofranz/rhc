@@ -155,8 +155,7 @@ describe RHC::Commands::Env do
     context 'when run against an unsupported server' do
       before {
         rest_client.stub(:api_version_negotiated).and_return(1.5)
-        @rest_app.links.delete 'SET_ENVIRONMENT_VARIABLES'
-        @rest_app.links.delete 'UNSET_ENVIRONMENT_VARIABLES'
+        @rest_app.links.delete 'SET_UNSET_ENVIRONMENT_VARIABLES'
       }
       let(:arguments) { ['env', 'set', 'TEST_ENV_VAR=1', '--app', 'mock_app_0', '--noprompt', '--confirm' ] }
       it "should raise env var not found exception" do
@@ -206,7 +205,9 @@ describe RHC::Commands::Env do
   describe 'list env' do
     context 'when list with default format' do
       before(:each) do
-        @rest_app.set_environment_variables({'FOO' => '123', 'BAR' => '456'})
+        @rest_app.set_environment_variables(
+          [RHC::Rest::EnvironmentVariable.new({:name => 'FOO', :value => '123'}),
+           RHC::Rest::EnvironmentVariable.new({:name => 'BAR', :value => '456'})])
       end
       let(:arguments) { ['env', 'list', '--app', 'mock_app_0'] }
       it { succeed_with_message /FOO=123/ }
@@ -225,7 +226,9 @@ describe RHC::Commands::Env do
 
     context 'when list with quotes format' do
       before(:each) do
-        @rest_app.set_environment_variables({'FOO' => '123', 'BAR' => '456'})
+        @rest_app.set_environment_variables(
+          [RHC::Rest::EnvironmentVariable.new({:name => 'FOO', :value => '123'}),
+           RHC::Rest::EnvironmentVariable.new({:name => 'BAR', :value => '456'})])
       end
       let(:arguments) { ['env', 'list', '--app', 'mock_app_0', '--quotes'] }
       it { succeed_with_message /FOO="123"/ }
@@ -244,7 +247,9 @@ describe RHC::Commands::Env do
 
     context 'when list with table format' do
       before(:each) do
-        @rest_app.set_environment_variables({'FOO' => '123', 'BAR' => '456'})
+        @rest_app.set_environment_variables(
+          [RHC::Rest::EnvironmentVariable.new({:name => 'FOO', :value => '123'}),
+           RHC::Rest::EnvironmentVariable.new({:name => 'BAR', :value => '456'})])
       end
       let(:arguments) { ['env', 'list', '--app', 'mock_app_0', '--table'] }
       it { succeed_with_message /Name\s+Value/ }
@@ -266,7 +271,9 @@ describe RHC::Commands::Env do
   describe 'show env' do
     context 'when show with default format' do
       before(:each) do
-        @rest_app.set_environment_variables({'FOO' => '123', 'BAR' => '456'})
+        @rest_app.set_environment_variables(
+          [RHC::Rest::EnvironmentVariable.new({:name => 'FOO', :value => '123'}),
+           RHC::Rest::EnvironmentVariable.new({:name => 'BAR', :value => '456'})])
       end
       let(:arguments) { ['env', 'show', 'FOO', '--app', 'mock_app_0'] }
       it { succeed_with_message /FOO=123/ }
@@ -288,7 +295,9 @@ describe RHC::Commands::Env do
 
     context 'when show with default format and not found env var' do
       before(:each) do
-        @rest_app.set_environment_variables({'FOO' => '123', 'BAR' => '456'})
+        @rest_app.set_environment_variables(
+          [RHC::Rest::EnvironmentVariable.new({:name => 'FOO', :value => '123'}),
+           RHC::Rest::EnvironmentVariable.new({:name => 'BAR', :value => '456'})])
       end
       let(:arguments) { ['env', 'show', 'ZEE', '--app', 'mock_app_0'] }
       it "should contain the right number of env vars" do
@@ -306,7 +315,9 @@ describe RHC::Commands::Env do
 
     context 'when show with quotes format' do
       before(:each) do
-        @rest_app.set_environment_variables({'FOO' => '123', 'BAR' => '456'})
+        @rest_app.set_environment_variables(
+          [RHC::Rest::EnvironmentVariable.new({:name => 'FOO', :value => '123'}),
+           RHC::Rest::EnvironmentVariable.new({:name => 'BAR', :value => '456'})])
       end
       let(:arguments) { ['env', 'show', 'FOO', '--app', 'mock_app_0', '--quotes'] }
       it { succeed_with_message /FOO="123"/ }
@@ -320,7 +331,9 @@ describe RHC::Commands::Env do
 
     context 'when show with quotes format and not found env var' do
       before(:each) do
-        @rest_app.set_environment_variables({'FOO' => '123', 'BAR' => '456'})
+        @rest_app.set_environment_variables(
+          [RHC::Rest::EnvironmentVariable.new({:name => 'FOO', :value => '123'}),
+           RHC::Rest::EnvironmentVariable.new({:name => 'BAR', :value => '456'})])
       end
       let(:arguments) { ['env', 'show', 'ZEE', '--app', 'mock_app_0', '--quotes'] }
       it "should contain the right number of env vars" do
@@ -338,7 +351,9 @@ describe RHC::Commands::Env do
 
     context 'when show with table format' do
       before(:each) do
-        @rest_app.set_environment_variables({'FOO' => '123', 'BAR' => '456'})
+        @rest_app.set_environment_variables(
+          [RHC::Rest::EnvironmentVariable.new({:name => 'FOO', :value => '123'}),
+           RHC::Rest::EnvironmentVariable.new({:name => 'BAR', :value => '456'})])
       end
       let(:arguments) { ['env', 'show', 'FOO', '--app', 'mock_app_0', '--table'] }
       it { succeed_with_message /Name\s+Value/ }
@@ -353,7 +368,9 @@ describe RHC::Commands::Env do
 
     context 'when show with table format and not found env var' do
       before(:each) do
-        @rest_app.set_environment_variables({'FOO' => '123', 'BAR' => '456'})
+        @rest_app.set_environment_variables(
+          [RHC::Rest::EnvironmentVariable.new({:name => 'FOO', :value => '123'}),
+           RHC::Rest::EnvironmentVariable.new({:name => 'BAR', :value => '456'})])
       end
       let(:arguments) { ['env', 'show', 'ZEE', '--app', 'mock_app_0', '--table'] }
       it "should contain the right number of env vars" do

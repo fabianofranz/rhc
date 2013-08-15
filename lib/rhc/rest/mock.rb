@@ -367,8 +367,7 @@ module RHC::Rest::Mock
        ['ADD_ALIAS',                    "domains/#{domain_id}/apps/#{app_id}/event",                 'post'],
        ['REMOVE_ALIAS',                 "domains/#{domain_id}/apps/#{app_id}/event",                 'post'],
        ['LIST_ALIASES',                 "domains/#{domain_id}/apps/#{app_id}/aliases",               'get'],
-       ['SET_ENVIRONMENT_VARIABLES',    "domains/#{domain_id}/apps/#{app_id}/event",                 'post'],
-       ['UNSET_ENVIRONMENT_VARIABLES',  "domains/#{domain_id}/apps/#{app_id}/event",                 'delete'],
+       ['SET_UNSET_ENVIRONMENT_VARIABLES',    "domains/#{domain_id}/apps/#{app_id}/event",                 'post'],
        ['DELETE',                       "broker/rest/domains/#{domain_id}/applications/#{app_id}",   'DELETE']]
     end
 
@@ -710,7 +709,7 @@ module RHC::Rest::Mock
       @app_url = "https://#{@name}-#{@domain.id}.fake.foo/"
       @ssh_url = "ssh://#{@uuid}@127.0.0.1"
       @aliases = []
-      @environment_variables = environment_variables || {}
+      @environment_variables = environment_variables || []
       @gear_profile = gear_profile
       if scale
         @scalable = true
@@ -806,20 +805,20 @@ module RHC::Rest::Mock
     end
 
     def environment_variables
-      @environment_variables || {}
+      @environment_variables || []
     end
 
-    def set_environment_variables(env_vars={})
-      if (supports? "SET_ENVIRONMENT_VARIABLES")
-        environment_variables.merge! env_vars
+    def set_environment_variables(env_vars=[])
+      if (supports? "SET_UNSET_ENVIRONMENT_VARIABLES")
+        environment_variables.concat env_vars
       else
         raise RHC::EnvironmentVariablesNotSupportedException.new
       end
     end
 
     def unset_environment_variables(env_vars=[])
-      if (supports? "UNSET_ENVIRONMENT_VARIABLES")
-        env_vars.each { |key| environment_variables.delete key }
+      if (supports? "SET_UNSET_ENVIRONMENT_VARIABLES")
+        env_vars.each { |item| environment_variables.delete_if { |env_var| env_var.name == item } }
       else
         raise RHC::EnvironmentVariablesNotSupportedException.new
       end

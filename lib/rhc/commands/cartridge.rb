@@ -85,15 +85,13 @@ module RHC::Commands
 
       rest_app = rest_client.find_application(options.namespace, options.app, :include => :cartridges)
 
-      cart.environment_variables = collect_env_vars(options.env) if options.env
+      cart.environment_variables = collect_env_vars(options.env).map { |item| item.to_hash } if options.env
 
       rest_cartridge = rest_app.add_cartridge(cart)
 
       success "done"
 
-      if cart.environment_variables.present?
-        rest_cartridge.environment_variables = cart.environment_variables
-      end
+      rest_cartridge.environment_variables = cart.environment_variables if cart.environment_variables.present?
 
       paragraph{ display_cart(rest_cartridge) }
       paragraph{

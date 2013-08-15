@@ -426,28 +426,22 @@ module RHC
     end
 
     def collect_env_vars(item)
-      return nil if item.nil?
+      return nil if item.blank?
 
-      env_vars = {}
+      env_vars = []
 
       if match = item.match(env_var_regex_pattern)
-
         name, separator, value = match.captures
-        env_vars[name] = value
+        env_vars << RHC::Rest::EnvironmentVariable.new({ :name => name, :value => value })
 
       elsif File.file? item
-
         File.readlines(item).each do |line|
-
           if match = line.match(env_var_regex_pattern)
-
             name, separator, value = match.captures
-            env_vars[name] = value
-
+            env_vars << RHC::Rest::EnvironmentVariable.new({ :name => name, :value => value })
           end
         end
       end
-
       env_vars
     end
 
