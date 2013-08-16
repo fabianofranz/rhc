@@ -127,7 +127,7 @@ module RHC
 
       def environment_variables
         debug "Getting all environment variables for application #{name}"
-        if (supports? "LIST_ENVIRONMENT_VARIABLES")
+        if supports? "LIST_ENVIRONMENT_VARIABLES"
           rest_method "LIST_ENVIRONMENT_VARIABLES"
         else
           raise RHC::EnvironmentVariablesNotSupportedException.new
@@ -150,7 +150,7 @@ module RHC
       # @param [Array<RHC::Rest::EnvironmentVariable>] Array of RHC::Rest::EnvironmentVariable to be set
       def set_environment_variables(env_vars=[])
         debug "Adding environment variable(s) #{env_vars.inspect} for #{name}"
-        if (supports? "SET_UNSET_ENVIRONMENT_VARIABLES")
+        if supports? "SET_UNSET_ENVIRONMENT_VARIABLES"
           rest_method "SET_UNSET_ENVIRONMENT_VARIABLES", :environment_variables => env_vars.map{|item| item.to_hash}
         else
           raise RHC::EnvironmentVariablesNotSupportedException.new
@@ -160,7 +160,7 @@ module RHC
       # @param [Array<String>] Array of env var names like ['FOO', 'BAR']
       def unset_environment_variables(env_vars=[])
         debug "Removing environment variable(s) #{env_vars.inspect} for #{name}"
-        if (supports? "SET_UNSET_ENVIRONMENT_VARIABLES")
+        if supports? "SET_UNSET_ENVIRONMENT_VARIABLES"
           rest_method "SET_UNSET_ENVIRONMENT_VARIABLES", :environment_variables => env_vars.map{|item| {:name => item}}
         else
           raise RHC::EnvironmentVariablesNotSupportedException.new

@@ -1,22 +1,22 @@
 module RHC
   module Rest
 
-    autoload :Base,                  'rhc/rest/base'
+    autoload :Base,                 'rhc/rest/base'
     autoload :Attributes,           'rhc/rest/attributes'
 
     autoload :HTTPClient,           'rhc/rest/httpclient'
 
+    autoload :Alias,                'rhc/rest/alias'
     autoload :Api,                  'rhc/rest/api'
     autoload :Application,          'rhc/rest/application'
     autoload :Authorization,        'rhc/rest/authorization'
     autoload :Cartridge,            'rhc/rest/cartridge'
     autoload :Client,               'rhc/rest/client'
     autoload :Domain,               'rhc/rest/domain'
+    autoload :EnvironmentVariable,  'rhc/rest/environment_variable'
+    autoload :GearGroup,            'rhc/rest/gear_group'
     autoload :Key,                  'rhc/rest/key'
     autoload :User,                 'rhc/rest/user'
-    autoload :GearGroup,            'rhc/rest/gear_group'
-    autoload :Alias,                'rhc/rest/alias'
-    autoload :EnvironmentVariable,  'rhc/rest/environment_variable'
 
     class Exception < RuntimeError
       attr_reader :code

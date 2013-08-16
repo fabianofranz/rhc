@@ -805,7 +805,7 @@ module RHC::Rest::Mock
     end
 
     def environment_variables
-      if (supports? "LIST_ENVIRONMENT_VARIABLES")
+      if supports? "LIST_ENVIRONMENT_VARIABLES"
         @environment_variables || []
       else
         raise RHC::EnvironmentVariablesNotSupportedException.new
@@ -813,7 +813,7 @@ module RHC::Rest::Mock
     end
 
     def set_environment_variables(env_vars=[])
-      if (supports? "SET_UNSET_ENVIRONMENT_VARIABLES")
+      if supports? "SET_UNSET_ENVIRONMENT_VARIABLES"
         environment_variables.env_vars concat
       else
         raise RHC::EnvironmentVariablesNotSupportedException.new
@@ -821,7 +821,7 @@ module RHC::Rest::Mock
     end
 
     def unset_environment_variables(env_vars=[])
-      if (supports? "SET_UNSET_ENVIRONMENT_VARIABLES")
+      if supports? "SET_UNSET_ENVIRONMENT_VARIABLES"
         env_vars.each { |item| environment_variables.delete_if { |env_var| env_var.name == item } }
       else
         raise RHC::EnvironmentVariablesNotSupportedException.new
