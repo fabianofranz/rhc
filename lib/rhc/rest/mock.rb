@@ -357,18 +357,19 @@ module RHC::Rest::Mock
     end
 
     def mock_app_links(domain_id='test_domain',app_id='test_app')
-      [['ADD_CARTRIDGE',                "domains/#{domain_id}/apps/#{app_id}/carts/add",             'post'],
-       ['LIST_CARTRIDGES',              "broker/rest/domains/#{domain_id}/applications/#{app_id}/cartridges",    'get' ],
-       ['GET_GEAR_GROUPS',              "domains/#{domain_id}/apps/#{app_id}/gear_groups",           'get' ],
-       ['START',                        "domains/#{domain_id}/apps/#{app_id}/start",                 'post'],
-       ['STOP',                         "domains/#{domain_id}/apps/#{app_id}/stop",                  'post'],
-       ['RESTART',                      "domains/#{domain_id}/apps/#{app_id}/restart",               'post'],
-       ['THREAD_DUMP',                  "domains/#{domain_id}/apps/#{app_id}/event",                 'post'],
-       ['ADD_ALIAS',                    "domains/#{domain_id}/apps/#{app_id}/event",                 'post'],
-       ['REMOVE_ALIAS',                 "domains/#{domain_id}/apps/#{app_id}/event",                 'post'],
-       ['LIST_ALIASES',                 "domains/#{domain_id}/apps/#{app_id}/aliases",               'get'],
-       ['SET_UNSET_ENVIRONMENT_VARIABLES',    "domains/#{domain_id}/apps/#{app_id}/event",                 'post'],
-       ['DELETE',                       "broker/rest/domains/#{domain_id}/applications/#{app_id}",   'DELETE']]
+      [['ADD_CARTRIDGE',                   "domains/#{domain_id}/apps/#{app_id}/carts/add",                      'post'],
+       ['LIST_CARTRIDGES',                 "broker/rest/domains/#{domain_id}/applications/#{app_id}/cartridges", 'get' ],
+       ['GET_GEAR_GROUPS',                 "domains/#{domain_id}/apps/#{app_id}/gear_groups",                    'get' ],
+       ['START',                           "domains/#{domain_id}/apps/#{app_id}/start",                          'post'],
+       ['STOP',                            "domains/#{domain_id}/apps/#{app_id}/stop",                           'post'],
+       ['RESTART',                         "domains/#{domain_id}/apps/#{app_id}/restart",                        'post'],
+       ['THREAD_DUMP',                     "domains/#{domain_id}/apps/#{app_id}/event",                          'post'],
+       ['ADD_ALIAS',                       "domains/#{domain_id}/apps/#{app_id}/event",                          'post'],
+       ['REMOVE_ALIAS',                    "domains/#{domain_id}/apps/#{app_id}/event",                          'post'],
+       ['LIST_ALIASES',                    "domains/#{domain_id}/apps/#{app_id}/aliases",                        'get'],
+       ['LIST_ENVIRONMENT_VARIABLES',      "domains/#{domain_id}/apps/#{app_id}/event",                          'post'],
+       ['SET_UNSET_ENVIRONMENT_VARIABLES', "domains/#{domain_id}/apps/#{app_id}/event",                          'post'],
+       ['DELETE',                          "broker/rest/domains/#{domain_id}/applications/#{app_id}",            'DELETE']]
     end
 
     def mock_cart_links(domain_id='test_domain',app_id='test_app',cart_id='test_cart')
@@ -814,7 +815,7 @@ module RHC::Rest::Mock
 
     def set_environment_variables(env_vars=[])
       if supports? "SET_UNSET_ENVIRONMENT_VARIABLES"
-        environment_variables.env_vars concat
+        environment_variables.concat env_vars
       else
         raise RHC::EnvironmentVariablesNotSupportedException.new
       end
