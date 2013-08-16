@@ -805,12 +805,16 @@ module RHC::Rest::Mock
     end
 
     def environment_variables
-      @environment_variables || []
+      if (supports? "LIST_ENVIRONMENT_VARIABLES")
+        @environment_variables || []
+      else
+        raise RHC::EnvironmentVariablesNotSupportedException.new
+      end
     end
 
     def set_environment_variables(env_vars=[])
       if (supports? "SET_UNSET_ENVIRONMENT_VARIABLES")
-        environment_variables.concat env_vars
+        environment_variables.env_vars concat
       else
         raise RHC::EnvironmentVariablesNotSupportedException.new
       end

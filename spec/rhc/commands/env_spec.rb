@@ -154,8 +154,8 @@ describe RHC::Commands::Env do
 
     context 'when run against an unsupported server' do
       before {
-        rest_client.stub(:api_version_negotiated).and_return(1.5)
         @rest_app.links.delete 'SET_UNSET_ENVIRONMENT_VARIABLES'
+        @rest_app.links.delete 'LIST_ENVIRONMENT_VARIABLES'
       }
       let(:arguments) { ['env', 'set', 'TEST_ENV_VAR=1', '--app', 'mock_app_0', '--noprompt', '--confirm' ] }
       it "should raise env var not found exception" do
