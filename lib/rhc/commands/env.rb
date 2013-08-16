@@ -46,18 +46,24 @@ module RHC::Commands
     def set(env)
       rest_app = rest_client.find_application(options.namespace, options.app)
 
-      say "Setting environment variable(s) to application '#{rest_app.name}':"
+      with_file = env.index {|item| File.file? item}
 
       env_vars = []
-      env.each {|e| env_vars.concat(collect_env_vars(e)) }
+      env.each {|item| env_vars.concat(collect_env_vars(item))}
+      raise RHC::EnvironmentVariableNotProvidedException.new(
+        (with_file ?
+          "Environment variable(s) not found in the provided file(s).\n" :
+          "Environment variable(s) not provided.\n") <<
+          "Please provide at least one environment variable using the syntax VARIABLE=VALUE.") if env_vars.empty?
 
-      env_vars.each {|item| default_display_env_var(item.name, item.value) }
+      if with_file
+        env_vars.each {|item| default_display_env_var(item.name, item.value)}
+        confirm_action "Setting the environment variable(s) above to application '#{rest_app.name}'. Confirm?"
+      end
 
-      confirm_action 'Confirm?'
-
-      say 'Wait ... '
+      say 'Setting environment variable(s) ... '
       rest_app.set_environment_variables(env_vars)
-      success 'Success'
+      success 'done'
 
       0
     end

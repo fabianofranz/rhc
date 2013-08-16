@@ -10,8 +10,17 @@ describe RHC::Commands::Env do
     run_output.should match(message) if message
   end
 
+  def exit_with_code_and_without_message(code, message=nil)
+    expect{ run }.to exit_with_code(code)
+    run_output.should_not match(message) if message
+  end
+
   def succeed_with_message(message="done")
     exit_with_code_and_message(0, message)
+  end
+
+  def succeed_without_message(message="done")
+    exit_with_code_and_without_message(0, message)
   end
 
   let!(:rest_client) { MockRestClient.new }
@@ -105,10 +114,9 @@ describe RHC::Commands::Env do
     ].each_with_index do |args, i|
       context "when run with single env var #{i}" do
         let(:arguments) { args }
-        it { succeed_with_message /Setting environment variable\(s\) to application 'mock_app_0'/ }
-        it { succeed_with_message /TEST_ENV_VAR=1/ }
-        it { succeed_with_message /Wait \.\.\./ }
-        it { succeed_with_message /Success/ }
+        it { succeed_with_message /Setting environment variable\(s\) \.\.\./ }
+        it { succeed_with_message /done/ }
+        it { succeed_without_message /TEST_ENV_VAR=1/ }
       end
     end
 
@@ -119,33 +127,59 @@ describe RHC::Commands::Env do
     ].each_with_index do |args, i|
       context "when run with multiple env vars #{i}" do
         let(:arguments) { args }
-        it { succeed_with_message /Setting environment variable\(s\) to application 'mock_app_0'/ }
-        it { succeed_with_message /TEST_ENV_VAR1=1/ }
-        it { succeed_with_message /TEST_ENV_VAR2=2/ }
-        it { succeed_with_message /TEST_ENV_VAR3=3/ }
-        it { succeed_with_message /Wait \.\.\./ }
-        it { succeed_with_message /Success/ }
+        it { succeed_with_message /Setting environment variable\(s\) \.\.\./ }
+        it { succeed_with_message /done/ }
+        it { succeed_without_message /TEST_ENV_VAR1=1/ }
+        it { succeed_without_message /TEST_ENV_VAR2=2/ }
+        it { succeed_without_message /TEST_ENV_VAR3=3/ }
+      end
+    end
+
+    [['env', 'set', 'TEST_ENV_VAR', '--app', 'mock_app_0', '--noprompt', '--confirm'],
+     ['set-env', 'TEST_ENV_VAR', '--app', 'mock_app_0', '--noprompt', '--confirm'],
+     ['env', 'set', '-e', 'TEST_ENV_VAR', '--app', 'mock_app_0', '--noprompt', '--confirm' ],
+     ['env', 'set', '--env', 'TEST_ENV_VAR', '--app', 'mock_app_0', '--noprompt', '--confirm' ],
+     #['env', 'set', '--env', 'TEST_ENV_VAR', '--app', 'mock_app_0', '--noprompt', '--confirm' ],
+     #['env', 'set', '--env', "TEST_ENV_VAR", '--app', 'mock_app_0', '--noprompt', '--confirm' ]
+    ].each_with_index do |args, i|
+      context "when run with no env var provided #{i}" do
+        let(:arguments) { args }
+        it "should raise env var not provided exception" do
+          expect{ run }.to exit_with_code(159)
+          run_output.should match(/Environment variable\(s\) not provided\./)
+          run_output.should match(/Please provide at least one environment variable using the syntax VARIABLE=VALUE\./)
+        end
       end
     end
 
     context 'when run with multiple env vars from file' do
       let(:arguments) {['env', 'set', File.expand_path('../../assets/env_vars.txt', __FILE__), '--app', 'mock_app_0', '--noprompt', '--confirm' ]}
-        it { succeed_with_message /Setting environment variable\(s\) to application 'mock_app_0'/ }
         it { succeed_with_message /FOO=123/ }
         it { succeed_with_message /BAR=456/ }
         it { succeed_with_message /MY_OPENSHIFT_ENV_VAR/ }
         it { succeed_with_message /MY_EMPTY_ENV_VAR/ }
-        it { succeed_with_message /Wait \.\.\./ }
-        it { succeed_with_message /Success/ }
-        it "should not contain invalid lines from file" do
-          run_output.should_not match(/ZEE/)
-          run_output.should_not match(/LOL/)
-          run_output.should_not match(/MUST NOT BE INCLUDED/)
+        it { succeed_without_message /ZEE/ }
+        it { succeed_without_message /LOL/ }
+        it { succeed_without_message /MUST NOT BE INCLUDED/ }
+    end
+
+    context 'when run with empty file' do
+      let(:arguments) {['env', 'set', File.expand_path('../../assets/empty.txt', __FILE__), '--app', 'mock_app_0', '--noprompt', '--confirm' ]}
+        it "should raise env var not provided exception" do
+          expect{ run }.to exit_with_code(159)
+          run_output.should match(/Environment variable\(s\) not found in the provided file\(s\)\./)
+          run_output.should match(/Please provide at least one environment variable using the syntax VARIABLE=VALUE\./)
         end
     end
 
     context 'when run with --noprompt and without --confirm' do
       let(:arguments) { ['env', 'set', 'TEST_ENV_VAR=1', '--app', 'mock_app_0', '--noprompt' ] }
+      it("should not ask for confirmation") { expect{ run }.to exit_with_code(0) }
+      it("should output confirmation") { run_output.should_not match("This action requires the --confirm option") }
+    end
+
+    context 'when run with --noprompt and without --confirm from file' do
+      let(:arguments) { ['env', 'set', File.expand_path('../../assets/env_vars.txt', __FILE__), '--app', 'mock_app_0', '--noprompt' ] }
       it "should ask for confirmation" do
         expect{ run }.to exit_with_code(1)
       end
