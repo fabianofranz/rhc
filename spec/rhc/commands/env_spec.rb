@@ -209,8 +209,8 @@ describe RHC::Commands::Env do
       context "when run with single env var #{i}" do
         let(:arguments) { args }
         it { succeed_with_message /TEST_ENV_VAR/ }
-        it { succeed_with_message /Wait \.\.\./ }
-        it { succeed_with_message /Success/ }
+        it { succeed_with_message /Removing environment variable\(s\) \.\.\./ }
+        it { succeed_with_message /removed/ }
       end
     end
 
@@ -222,8 +222,8 @@ describe RHC::Commands::Env do
         it { succeed_with_message /TEST_ENV_VAR1/ }
         it { succeed_with_message /TEST_ENV_VAR2/ }
         it { succeed_with_message /TEST_ENV_VAR3/ }
-        it { succeed_with_message /Wait \.\.\./ }
-        it { succeed_with_message /Success/ }
+        it { succeed_with_message /Removing environment variable\(s\) \.\.\./ }
+        it { succeed_with_message /removed/ }
       end
     end
 
@@ -289,6 +289,21 @@ describe RHC::Commands::Env do
       it { succeed_with_message /Name\s+Value/ }
       it { succeed_with_message /FOO\s+123/ }
       it { succeed_with_message /BAR\s+456/ }
+      it "should contain the right number of env vars" do
+        @rest_app.environment_variables.length.should == 2
+      end
+    end
+
+    context 'when list with table and quotes format' do
+      before(:each) do
+        @rest_app.set_environment_variables(
+          [RHC::Rest::EnvironmentVariable.new({:name => 'FOO', :value => '123'}),
+           RHC::Rest::EnvironmentVariable.new({:name => 'BAR', :value => '456'})])
+      end
+      let(:arguments) { ['env', 'list', '--app', 'mock_app_0', '--table', '--quotes'] }
+      it { succeed_with_message /Name\s+Value/ }
+      it { succeed_with_message /FOO\s+"123"/ }
+      it { succeed_with_message /BAR\s+"456"/ }
       it "should contain the right number of env vars" do
         @rest_app.environment_variables.length.should == 2
       end
@@ -392,6 +407,23 @@ describe RHC::Commands::Env do
       let(:arguments) { ['env', 'show', 'FOO', '--app', 'mock_app_0', '--table'] }
       it { succeed_with_message /Name\s+Value/ }
       it { succeed_with_message /FOO\s+123/ }
+      it "should not contain env vars not specified to show" do
+        run_output.should_not match(/BAR/)
+      end
+      it "should contain the right number of env vars" do
+        @rest_app.environment_variables.length.should == 2
+      end
+    end
+
+    context 'when show with table and quotes format' do
+      before(:each) do
+        @rest_app.set_environment_variables(
+          [RHC::Rest::EnvironmentVariable.new({:name => 'FOO', :value => '123'}),
+           RHC::Rest::EnvironmentVariable.new({:name => 'BAR', :value => '456'})])
+      end
+      let(:arguments) { ['env', 'show', 'FOO', '--app', 'mock_app_0', '--table', '--quotes'] }
+      it { succeed_with_message /Name\s+Value/ }
+      it { succeed_with_message /FOO\s+"123"/ }
       it "should not contain env vars not specified to show" do
         run_output.should_not match(/BAR/)
       end

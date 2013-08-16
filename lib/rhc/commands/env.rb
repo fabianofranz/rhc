@@ -86,16 +86,16 @@ module RHC::Commands
     def unset(env)
       rest_app = rest_client.find_application(options.namespace, options.app)
 
-      say 'Removing environment variables is a destructive operation that may result in loss of data.'
+      warn 'Removing environment variables is a destructive operation that may result in loss of data.'
 
       env.each do |e|
         default_display_env_var(e)
       end
 
       confirm_action "Are you sure you wish to remove the environment variable(s) above from application '#{rest_app.name}'?"
-      say 'Wait ... '
+      say 'Removing environment variable(s) ... '
       rest_app.unset_environment_variables(env)
-      success 'Success'
+      success 'removed'
 
       0
     end
