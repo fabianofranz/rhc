@@ -139,18 +139,13 @@ module RHC
       info "#{env_var_name}#{env_var_value.nil? ? '' : '=' + env_var_value}"
     end
 
-    def display_env_var_list(env_vars, format=nil)
+    def display_env_var_list(env_vars, opts={})
       if env_vars.present?
-        case format
-        when :table
-          say table(env_vars.collect{ |item| [item.name, item.value] }, :header => ['Name', 'Value'])
-        when :quotes
-          env_vars.sort.each do |env_var|
-            default_display_env_var(env_var.name, "\"#{env_var.value}\"")
-          end
+        if opts[:table]
+          say table(env_vars.collect{ |item| [item.name, opts[:quotes] ? "\"#{item.value}\"" : item.value] }, :header => ['Name', 'Value'])
         else
           env_vars.sort.each do |env_var|
-            default_display_env_var(env_var.name, env_var.value)
+            default_display_env_var(env_var.name, opts[:quotes] ? "\"#{env_var.value}\"" : env_var.value)
           end
         end
       end

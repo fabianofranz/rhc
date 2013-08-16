@@ -104,15 +104,15 @@ module RHC::Commands
     syntax "<app> [--namespace NAME]"
     argument :app, "Application name (required)", ["-a", "--app name"], :context => :app_context, :required => true
     option ["-n", "--namespace NAME"], "Namespace of your application", :context => :namespace_context, :required => true
-    option ["--table"], "Format output as table"
-    option ["--quotes"], "Format output with double quotes for values"
+    option ["--table"], "Format the output list as a table"
+    option ["--quotes"], "Format the output list with double quotes for env var values"
     def list(app)
       rest_app = rest_client.find_application(options.namespace, app)
       rest_env_vars = rest_app.environment_variables
 
       pager
 
-      display_env_var_list(rest_env_vars, options.table ? :table : options.quotes ? :quotes : :env)
+      display_env_var_list(rest_env_vars, { :table => options.table, :quotes => options.quotes })
 
       0
     end
@@ -122,15 +122,15 @@ module RHC::Commands
     argument :env, "Name of the environment variable(s), e.g. VARIABLE", ["-e", "--env VARIABLE"], :optional => false, :arg_type => :list
     option ["-a", "--app NAME"], "Application name (required)", :context => :app_context, :required => true
     option ["-n", "--namespace NAME"], "Namespace of your application", :context => :namespace_context, :required => true
-    option ["--table"], "Format output as table"
-    option ["--quotes"], "Format output with double quotes for values"
+    option ["--table"], "Format the output list as a table"
+    option ["--quotes"], "Format the output list with double quotes for env var values"
     def show(env)
       rest_app = rest_client.find_application(options.namespace, options.app)
       rest_env_vars = rest_app.find_environment_variables(env)
 
       pager
 
-      display_env_var_list(rest_env_vars, options.table ? :table : options.quotes ? :quotes : :env)
+      display_env_var_list(rest_env_vars, { :table => options.table, :quotes => options.quotes })
 
       0
     end
