@@ -58,6 +58,9 @@ module RHC::Commands
     option ["--[no-]dns"], "Skip waiting for the application DNS name to resolve. Must be used in combination with --no-git"
     option ['--no-keys'], "Skip checking SSH keys during app creation", :hide => true
     option ["--enable-jenkins [NAME]"], "Enable Jenkins builds for this application (will create a Jenkins application if not already available). The default name will be 'jenkins' if not specified."
+    option ["--[no-]auto-deploy"], "Build and deploy automatically when pushing to the git repo. Defaults to true."
+    option ["--keep-deployments INTEGER", Integer], "Number of deployments to preserve. Defaults to 1."
+    option ["--deployment-branch BRANCH"], "Which branch should trigger an automatic deployment, if automatic deployment is enabled with --auto-deploy. Defaults to master."
     argument :name, "Name for your application", ["-a", "--app NAME"], :optional => true
     argument :cartridges, "The web framework this application should use", ["-t", "--type CARTRIDGE"], :optional => true, :type => :list
     def create(name, cartridges)
@@ -105,7 +108,7 @@ module RHC::Commands
         say "Creating application '#{name}' ... "
 
         # create the main app
-        rest_app = create_app(name, cartridges, rest_domain, options.gear_size, options.scaling, options.from_code, env)
+        rest_app = create_app(name, cartridges, rest_domain, options.gear_size, options.scaling, options.from_code, environment_variables, options.auto_deploy, options.keep_deployments, options.deployment_branch)
         success "done"
 
         paragraph{ indent{ success rest_app.messages.map(&:strip) } }
@@ -417,13 +420,17 @@ module RHC::Commands
         result
       end
 
-      def create_app(name, cartridges, rest_domain, gear_size=nil, scale=nil, from_code=nil, environment_variables=nil)
+      def create_app(name, cartridges, rest_domain, gear_size=nil, scale=nil, from_code=nil, environment_variables=nil, auto_deploy=nil, keep_deployments=nil, deployment_branch=nil)
         app_options = {:cartridges => Array(cartridges)}
         app_options[:gear_profile] = gear_size if gear_size
         app_options[:scale] = scale if scale
         app_options[:initial_git_url] = from_code if from_code
         app_options[:debug] = true if @debug
         app_options[:environment_variables] = environment_variables.map{ |item| item.to_hash } if environment_variables.present?
+        app_options[:auto_deploy] = true if auto_deploy
+        app_options[:keep_deployments] = keep_deployments if keep_deployments
+        app_options[:deployment_branch] = deployment_branch if deployment_branch
+        debug "Creating application '#{name}' with these options - #{app_options.inspect}"
         rest_app = rest_domain.add_application(name, app_options)
 
         rest_app

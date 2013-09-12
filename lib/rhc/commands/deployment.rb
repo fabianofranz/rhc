@@ -57,5 +57,8 @@ module RHC::Commands
       success "done"
     end
 
+    def config
+    end
+
   end
 end
