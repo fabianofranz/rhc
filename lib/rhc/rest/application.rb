@@ -177,6 +177,34 @@ module RHC
         has_param?('ADD_CARTRIDGE', 'environment_variables')
       end
 
+      def deployments
+        debug "Getting deployments for application #{name}"
+        if supports? "LIST_DEPLOYMENT"
+          rest_method "LIST_DEPLOYMENT"
+        else
+          raise RHC::DeploymentsNotSupportedException.new
+        end
+      end
+
+      def deploy(ref=nil, description=nil, artifact_url=nil)
+        debug "Deploy application #{name}"
+        description = "Deloyment created at #{Time.now.gmtime}" if description.blank?
+        if supports? "DEPLOY"
+          rest_method "DEPLOY", :description => description, :ref => ref, :artifact_url => artifact_url
+        else
+          raise RHC::DeploymentsNotSupportedException.new
+        end
+      end
+
+      def rollback(id)
+        debug "Rollback application #{name}"
+        if supports? "ROLLBACK"
+          rest_method "ROLLBACK", :event => 'roll-back', :deployment_id => id
+        else
+          raise RHC::DeploymentsNotSupportedException.new
+        end
+      end
+
       def add_alias(app_alias)
         debug "Running add_alias for #{name}"
         rest_method "ADD_ALIAS", :event => "add-alias", :alias => app_alias

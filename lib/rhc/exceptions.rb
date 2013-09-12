@@ -55,6 +55,12 @@ module RHC
     end
   end
 
+  class DeploymentsNotSupportedException < Exception
+    def initialize(message="Server does not support deployments")
+      super message, 161
+    end
+  end
+
   class KeyNotFoundException < Exception
     def initialize(message="SSHKey not found")
       super message, 118

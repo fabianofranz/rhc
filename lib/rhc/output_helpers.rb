@@ -153,6 +153,12 @@ module RHC
       end
     end
 
+    def display_deployment_list(deployment_list)
+      if deployment_list.present?
+        say table(deployment_list.collect{|item| item.inspect})
+      end
+    end
+
     private
       def format_table(heading,values,opts = {})
         values = values.to_a if values.is_a? Hash
