@@ -23,6 +23,8 @@ module RHC::Commands
       rest_app.deploy(ref, description)
 
       success "done"
+
+      0
     end
 
     summary "List deployments"
@@ -39,6 +41,8 @@ module RHC::Commands
       pager
 
       display_deployment_list(deployments)
+
+      0
     end
 
     summary "Show details of the given deployment"
@@ -62,28 +66,9 @@ module RHC::Commands
       rest_app.rollback(id)
 
       success "done"
+
+      0
     end
-
-    summary "Configure deployment settings for the given application"
-    syntax ""
-    argument :app, "Application name (required)", ["-a", "--app name"], :context => :app_context, :required => true
-    option ["-n", "--namespace NAME"], "Namespace of your application", :context => :namespace_context, :required => true
-    option ["--[no-]auto-deploy"], "Build and deploy automatically when pushing to the git repo. Defaults to true."
-    option ["--keep-deployments INTEGER", Integer], "Number of deployments to preserve. Defaults to 1."
-    option ["--deployment-branch BRANCH"], "Which branch should trigger an automatic deployment, if automatic deployment is enabled with --auto-deploy. Defaults to master."
-    def configure(app)
-
-      say "Going to configure deployment settings to application #{app} ... "
-
-      rest_app = rest_client.find_application(options.namespace, options.app)
-      rest_app.auto_deploy = option.auto_deploy if option.auto_deploy
-      rest_app.keep_deployments = option.keep_deployments if option.keep_deployments
-      rest_app.deployment_branch = option.deployment_branch if option.deployment_branch
-      rest_app.save
-
-      success "done"
-    end
-
 
   end
 end

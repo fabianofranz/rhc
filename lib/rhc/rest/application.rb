@@ -132,6 +132,11 @@ module RHC
         rest_method "THREAD_DUMP", :event => "thread-dump"
       end
 
+      def configure(options={})
+        debug "Running update for #{name}"
+        rest_method "UPDATE", options
+      end
+
       def environment_variables
         debug "Getting all environment variables for application #{name}"
         if supports? "LIST_ENVIRONMENT_VARIABLES"
@@ -200,7 +205,7 @@ module RHC
       def rollback(id)
         debug "Rollback application #{name}"
         if supports? "ROLLBACK"
-          rest_method "ROLLBACK", :event => 'roll-back', :deployment_id => id
+          rest_method "ROLLBACK", :event => 'rollback', :deployment_id => id
         else
           raise RHC::DeploymentsNotSupportedException.new
         end
