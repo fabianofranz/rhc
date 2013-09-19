@@ -178,9 +178,9 @@ module RHC
     def display_deployment_list(deployment_list)
       if deployment_list.present?
         items = deployment_list.map do |item|
-          [item.id, item.ref, item.hot_deploy, item.state]
+          [item.id, item.ref, item.hot_deploy, item.state, item.created_at]
         end
-        say table(items, :header => ["ID", "Ref", "Hot Deploy?", "State"])
+        say table(items, :header => ["ID", "Ref", "Hot Deploy?", "State", "Deployed At"])
       end
     end
 

@@ -350,6 +350,30 @@ module RHC::Commands
       0
     end
 
+    summary "Deploy"
+    syntax ""
+    argument :ref, "Git tag, branch or commit id or binary file to be deployed", ["--ref REF"], :optional => false
+    argument :description, "Description of this deployment", ["--description DESCRIPTION"], :optional => true
+    option ["-a", "--app NAME"], "Application name (required)", :context => :app_context, :required => true
+    option ["-n", "--namespace NAME"], "Namespace of your application", :context => :namespace_context, :required => true
+    option ["-e", "--env VARIABLE=VALUE"], "Environment variable(s) to be set for this deploy, or path to a file containing environment variables", :option_type => :list
+    option ["--[no-]restart"], "Restart after deploying?"
+    option ["--[no-]start"], "Start after deploying?"
+    option ["--after COMMAND"], "After deploy execute this command on all gears deployed. Requires a command."
+    option ["--repo PATH"], "Path to git repo (auto-detect if in repo)"
+    alias_action :"deploy", :root_command => true
+    def deploy(ref, description)
+      say "Deploying #{ref} ... "
+
+      rest_app = rest_client.find_application(options.namespace, options.app)
+
+      rest_app.deploy(ref, description)
+
+      success "done"
+
+      0
+    end
+
     private
       include RHC::GitHelpers
       include RHC::CartridgeHelpers
