@@ -153,6 +153,28 @@ module RHC
       end
     end
 
+    def display_deployment(deployment)
+      if deployment.present?
+        paragraph do
+          header [deployment.id] do
+            section(:bottom => 1) do
+              say format_table \
+                nil,
+                get_properties(
+                  deployment,
+                  :id,
+                  :ref,
+                  :artifact_url,
+                  :hot_deploy,
+                  :state
+                ),
+                :delete => true
+            end
+          end
+        end
+      end
+    end
+
     def display_deployment_list(deployment_list)
       if deployment_list.present?
         items = deployment_list.map do |item|

@@ -1,7 +1,7 @@
 module RHC
   module Rest
     class Deployment < Base
-      define_attr :id, :ref, :artifact_url, :hot_deploy, :state
+      define_attr :id, :ref, :artifact_url, :hot_deploy, :state, :created_at, :force_clean_build
 
       def <=>(other)
         description <=> other.description

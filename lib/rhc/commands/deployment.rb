@@ -51,6 +51,12 @@ module RHC::Commands
     option ["-a", "--app NAME"], "Application name (required)", :context => :app_context, :required => true
     option ["-n", "--namespace NAME"], "Namespace of your application", :context => :namespace_context, :required => true
     def show(id)
+      rest_app = rest_client.find_application(options.namespace, app)
+      deployment = rest_app.deployments.select{|item| item.id == id}.first
+
+      display_deployment(deployment)
+
+      0
     end
 
     summary "Rollback deployment"
