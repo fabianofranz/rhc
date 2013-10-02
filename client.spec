@@ -3,7 +3,7 @@
 
 Summary:       OpenShift client management tools
 Name:          rhc
-Version: 1.15.4
+Version: 1.15.4.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -102,6 +102,16 @@ rm -rf $RPM_BUILD_ROOT
 %attr(0644,-,-) /etc/bash_completion.d/rhc
 
 %changelog
+* Wed Oct 02 2013 fabianofranz <contact@fabianofranz.com> 1.15.4.1-1
+- Moved deploy to app (deploy-app instead of create-deployment)
+  (contact@fabianofranz.com)
+- Deploy WIP - rhc show (contact@fabianofranz.com)
+- Deploy WIP (contact@fabianofranz.com)
+- Deployment must support rest api 1.5 (contact@fabianofranz.com)
+- Support to deployment configuration (contact@fabianofranz.com)
+- Setting deployment options on create-app (contact@fabianofranz.com)
+- First version of rhc deployment (contact@fabianofranz.com)
+
 * Tue Oct 01 2013 Adam Miller <admiller@redhat.com> 1.15.4-1
 - Merge pull request #469 from smarterclayton/mongo_rhc_test_fails
   (dmcphers+openshiftbot@redhat.com)
