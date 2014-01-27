@@ -143,6 +143,42 @@ module RHC
       say table cells, opts unless options.raw
     end
 
+    def check_quota(gears, opts={})
+      run_on_gears("quota --always-resolve -w ${OPENSHIFT_GEAR_UUID}", gears, :as => :gear) do |gear, data, group|
+
+        results = data.split("\n").grep(%r(^.*/dev/))
+
+        if !results.empty?
+          results = results.first.strip.split(' ')
+
+          return {
+            uuid:        gear['id'], 
+            device:      results[0],
+            blocks_used: results[1].to_f, blocks_quota: results[2].to_f, blocks_limit: results[3].to_f,
+            inodes_used: results[4].to_f, inodes_quota: results[5].to_f, inodes_limit: results[6].to_f
+          }
+        end
+      end
+    end
+
+    def check_and_warn_quota(gears, opts={})
+      quota = check_quota(gears, opts)
+
+      if quota
+        uuid = quota[:uuid]
+        blocks_usage = quota[:blocks_used] / quota[:blocks_limit] * 100.0
+        inodes_usage = quota[:inodes_used] / quota[:inodes_limit] * 100.0
+
+        if blocks_usage > 90.0
+          warn "Warning: Gear #{uuid} is using #{'%3.1f' % blocks_usage}% of disk quota"
+        end
+
+        if inodes_usage > 90.0
+          echo "Warning: Gear #{uuid} is using #{'%3.1f' % inodes_usage}% of inodes allowed"
+        end
+      end
+    end
+
     def ssh_command_for_op(operation)
       #case operation
       raise RHC::OperationNotSupportedException, "The operation #{operation} is not supported."
