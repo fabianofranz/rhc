@@ -1,4 +1,5 @@
 require 'uri'
+require 'rhc/ssh_helpers'
 
 module RHC::Commands
   class ForwardingSpec
@@ -60,6 +61,7 @@ module RHC::Commands
   end
 
   class PortForward < Base
+    include RHC::SSHHelpers
 
     UP_TO_256 = /25[0-5]|2[0-4][0-9]|[01]?(?:[0-9][0-9]?)/
     UP_TO_65535 = /6553[0-5]|655[0-2][0-9]|65[0-4][0-9][0-9]|6[0-4][0-9][0-9][0-9]|[0-5]?(?:[0-9][0-9]{0,3})/
@@ -76,6 +78,8 @@ module RHC::Commands
       ssh_uri = URI.parse(options.gear ? rest_app.gear_ssh_url(options.gear) : rest_app.ssh_url)
 
       say "Using #{ssh_uri}..." if options.debug
+
+      check_and_warn_quota(find_app(:with_gear_groups => true))
 
       forwarding_specs = []
 

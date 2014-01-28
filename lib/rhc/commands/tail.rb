@@ -18,6 +18,8 @@ module RHC::Commands
       rest_app = find_app(:include => :cartridges)
       ssh_url = options.gear ? rest_app.gear_ssh_url(options.gear) : rest_app.ssh_url
 
+      check_and_warn_quota(find_app(:with_gear_groups => true))
+
       tail('*', URI(ssh_url), options)
 
       0

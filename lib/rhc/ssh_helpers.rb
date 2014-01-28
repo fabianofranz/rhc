@@ -146,9 +146,9 @@ module RHC
     def check_quota(gears, opts={})
       run_on_gears("quota --always-resolve -w ${OPENSHIFT_GEAR_UUID}", gears, :as => :gear) do |gear, data, group|
 
-        results = data.split("\n").grep(%r(^.*/dev/))
+        results = data.split("\n").grep(%r(^.*/dev/)) if data
 
-        if !results.empty?
+        if results && !results.empty?
           results = results.first.strip.split(' ')
 
           return {
