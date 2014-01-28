@@ -2,6 +2,7 @@ require 'commander/user_interaction'
 require 'rhc/version'
 require 'rhc/config'
 require 'rhc/output_helpers'
+require 'rhc/ssh_helpers'
 require 'rbconfig'
 
 require 'resolv'
@@ -23,6 +24,7 @@ module RHC
     include Commander::UI
     include Commander::UI::AskForClass
     include RHC::OutputHelpers
+    include RHC::SSHHelpers
 
     extend self
 
@@ -470,6 +472,51 @@ module RHC
         end
       end
       env_vars
+    end
+
+    def check_quota(app, opts={})
+      gears = rest_client.find_application_by_id_gear_groups(app.id, opts)
+
+      gears_quota = []
+
+      run_on_gears("quota --always-resolve -w ${OPENSHIFT_GEAR_UUID}", gears, :as => :gear) do |gear, data, group|
+
+        results = data.split("\n").grep(%r(^.*/dev/)) if data
+
+        if results && !results.empty?
+          results = results.first.strip.split(' ')
+
+          gears_quota << {
+            uuid:        gear['id'], 
+            device:      results[0],
+            blocks_used: results[1].to_f, blocks_quota: results[2].to_f, blocks_limit: results[3].to_f,
+            inodes_used: results[4].to_f, inodes_quota: results[5].to_f, inodes_limit: results[6].to_f
+          }
+        end
+      end
+
+      gears_quota
+    end
+
+    def check_and_warn_quota(app, opts={})
+      gears_quota = check_quota(app, opts)
+
+      if gears_quota
+        gears_quota.each do |quota|
+
+          uuid = quota[:uuid]
+          blocks_usage = quota[:blocks_used] / quota[:blocks_limit] * 100.0
+          inodes_usage = quota[:inodes_used] / quota[:inodes_limit] * 100.0
+
+          if blocks_usage > 90.0
+            warn "Warning: Gear #{uuid} is using #{'%3.1f' % blocks_usage}% of disk quota"
+          end
+
+          if inodes_usage > 90.0
+            echo "Warning: Gear #{uuid} is using #{'%3.1f' % inodes_usage}% of inodes allowed"
+          end
+        end
+      end
     end
 
     BOUND_WARNING = self.method(:warn).to_proc

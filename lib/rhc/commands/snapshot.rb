@@ -33,6 +33,8 @@ module RHC::Commands
       ssh_uri = URI.parse(rest_app.ssh_url)
       filename = options.filepath ? options.filepath : "#{rest_app.name}.tar.gz"
 
+      check_and_warn_quota(rest_app)
+
       snapshot_cmd = options.deployment ? 'gear archive-deployment' : 'snapshot'
       ssh_cmd = "#{ssh} #{ssh_uri.user}@#{ssh_uri.host} '#{snapshot_cmd}' > #{filename}"
       debug ssh_cmd
@@ -79,6 +81,8 @@ module RHC::Commands
       filename = options.filepath ? options.filepath : "#{rest_app.name}.tar.gz"
 
       if File.exists? filename
+
+        check_and_warn_quota(rest_app)
 
         include_git = RHC::Helpers.windows? ? true : RHC::TarGz.contains(filename, './*/git')
         ssh_uri = URI.parse(rest_app.ssh_url)

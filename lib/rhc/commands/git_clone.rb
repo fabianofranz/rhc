@@ -18,6 +18,7 @@ module RHC::Commands
     def run(app_name)
       if has_git?
         rest_app = find_app
+        check_and_warn_quota(rest_app)
         dir = git_clone_application(rest_app)
         success "Your application Git repository has been cloned to '#{system_path(dir)}'"
 

@@ -79,7 +79,7 @@ module RHC::Commands
 
       say "Using #{ssh_uri}..." if options.debug
 
-      check_and_warn_quota(find_app(:with_gear_groups => true))
+      check_and_warn_quota(rest_app)
 
       forwarding_specs = []
 

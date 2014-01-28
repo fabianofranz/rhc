@@ -335,7 +335,7 @@ module RHC::Commands
     option ["--gears [quota|ssh]"], "Show information about the cartridges on each gear in this application. Pass 'quota' to see per gear disk usage and limits. Pass 'ssh' to print only the SSH connection strings of each gear."
     def show(app_name)
 
-      check_and_warn_quota(find_app(:with_gear_groups => true))
+      check_and_warn_quota(find_app)
 
       if options.state
         find_app(:with_gear_groups => true).each do |gg|

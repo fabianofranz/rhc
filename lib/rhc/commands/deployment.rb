@@ -30,6 +30,9 @@ module RHC::Commands
     alias_action :"deployments", :root_command => true
     def list(app)
       rest_app = find_app
+
+      check_and_warn_quota(rest_app)
+
       deployment_activations = rest_app.deployment_activations
 
       raise RHC::DeploymentNotFoundException, "No deployments found for application #{app}." if !deployment_activations.present?
@@ -50,6 +53,9 @@ module RHC::Commands
     argument :id, "The deployment ID to show", ["--id ID"], :optional => false
     def show(id)
       rest_app = find_app
+
+      check_and_warn_quota(rest_app)
+
       item = rest_app.deployment_activations.reverse_each.detect{|item| item[:deployment].id == id}
 
       raise RHC::DeploymentNotFoundException, "Deployment ID '#{id}' not found for application #{rest_app.name}." if !item.present?
@@ -71,6 +77,8 @@ module RHC::Commands
     argument :id, "The deployment ID to activate on the application", ["--id ID"], :optional => false
     def activate(id)
       rest_app = find_app
+
+      check_and_warn_quota(rest_app)
 
       raise RHC::DeploymentsNotSupportedException.new if !rest_app.supports? "DEPLOY"
 

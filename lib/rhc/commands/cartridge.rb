@@ -113,6 +113,8 @@ module RHC::Commands
       rest_app = find_app(:include => :cartridges)
       rest_cartridge = check_cartridges(cartridge, :from => rest_app.cartridges).first
 
+      check_and_warn_quota(rest_app)
+
       display_cart(rest_cartridge)
 
       0
@@ -177,6 +179,7 @@ module RHC::Commands
     def status(cartridge)
       rest_app = find_app(:include => :cartridges)
       rest_cartridge = check_cartridges(cartridge, :from => rest_app.cartridges).first
+      check_and_warn_quota(rest_app)
       results { rest_cartridge.status.each{ |msg| say msg['message'] } }
       0
     end
