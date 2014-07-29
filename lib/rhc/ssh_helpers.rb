@@ -16,11 +16,13 @@
 #  limitations under the License.
 
 require 'net/ssh'
+require 'net/ssh/kerberos'
 require 'rhc/vendor/sshkey'
 require 'httpclient'
 
 module RHC
   module SSHHelpers
+    AUTH_METHODS = ["publickey", "gssapi-with-mic", "password", "keyboard-interactive"]
 
     class MultipleGearTask
       def initialize(command, over, opts={})
@@ -169,7 +171,7 @@ module RHC
     def ssh_ruby(host, username, command, compression=false, request_pty=false, &block)
       debug "Opening Net::SSH connection to #{host}, #{username}, #{command}"
       exit_status = 0
-      options = {:compression => compression}
+      options = {:compression => compression, :auth_methods => AUTH_METHODS}
       options[:verbose] = :debug if debug?
       Net::SSH.start(host, username, options) do |session|
         #:nocov:
@@ -267,7 +269,7 @@ module RHC
               raise RHC::SnapshotSaveException.new "Error in trying to save snapshot. You can try to save manually by running:\n#{ssh_cmd}"
             end
         else
-          Net::SSH.start(ssh_uri.host, ssh_uri.user) do |ssh|
+          Net::SSH.start(ssh_uri.host, ssh_uri.user, {:auth_methods => AUTH_METHODS}) do |ssh|
             File.open(filename, 'wb') do |file|
               ssh.exec! "snapshot" do |channel, stream, data|
                 if stream == :stdout
@@ -306,7 +308,7 @@ module RHC
             raise RHC::SnapshotRestoreException.new "Error in trying to restore snapshot. You can try to restore manually by running:\n#{ssh_cmd}"
           end
         else
-          ssh = Net::SSH.start(ssh_uri.host, ssh_uri.user)
+          ssh = Net::SSH.start(ssh_uri.host, ssh_uri.user, {:auth_methods => AUTH_METHODS})
           ssh.open_channel do |channel|
             channel.exec("restore#{include_git ? ' INCLUDE_GIT' : ''}") do |ch, success|
               channel.on_data do |ch, data|
